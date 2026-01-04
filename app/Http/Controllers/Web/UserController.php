@@ -13,14 +13,14 @@ class UserController extends Controller
     {
         if (! Auth::user()->can('view', $user)) abort(403);
 
-        return view('users.show', compact('user'));
+        return \Inertia\Inertia::render('Users/Show', compact('user'));
     }
 
     public function edit(User $user)
     {
         if (! Auth::user()->can('update', $user)) abort(403);
 
-        return view('users.edit', compact('user'));
+        return \Inertia\Inertia::render('Users/Edit', compact('user'));
     }
 
     public function update(Request $request, User $user)

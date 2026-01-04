@@ -21,14 +21,14 @@ class SomitiController extends Controller
                 });
         })->paginate(20);
 
-        return view('somitis.index', compact('somitis'));
+        return \Inertia\Inertia::render('Somitis/Index', compact('somitis'));
     }
 
     public function show(Somiti $somiti)
     {
         if (! Auth::user()->can('view', $somiti)) abort(403);
 
-        return view('somitis.show', ['somiti' => $somiti->load('members', 'managers')]);
+        return \Inertia\Inertia::render('Somitis/Show', ['somiti' => $somiti->load('members', 'managers')]);
     }
 
     public function create()

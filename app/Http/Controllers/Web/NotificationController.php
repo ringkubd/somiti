@@ -14,14 +14,14 @@ class NotificationController extends Controller
             $q->where('user_id', Auth::id())->orWhereNotNull('somiti_id');
         })->orderByDesc('created_at')->paginate(25);
 
-        return view('notifications.index', compact('notifications'));
+        return \Inertia\Inertia::render('Notifications/Index', compact('notifications'));
     }
 
     public function show(Notification $notification)
     {
         if (! Auth::user()->can('view', $notification)) abort(403);
 
-        return view('notifications.show', ['notification' => $notification]);
+        return \Inertia\Inertia::render('Notifications/Show', ['notification' => $notification]);
     }
 
     public function markRead(Notification $notification)
