@@ -43,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('ledgers/{ledger}', [App\Http\Controllers\Api\LedgerController::class, 'show'])->name('ledgers.show');
 
     // Authentication (API) - login is public
-    Route::post('auth/login', [App\Http\Controllers\Api\AuthController::class, 'login'])->name('auth.login')->withoutMiddleware('auth:sanctum');
+    Route::post('auth/login', [App\Http\Controllers\Api\AuthController::class, 'login'])->name('auth.login');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('auth.logout');

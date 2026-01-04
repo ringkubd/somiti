@@ -13,7 +13,7 @@ Route::get('/', function () {
 // Override Fortify logout to ensure API tokens are revoked on web logout
 Route::post('logout', [App\Http\Controllers\Web\AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCreation::class])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');

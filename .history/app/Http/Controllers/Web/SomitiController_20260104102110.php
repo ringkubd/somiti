@@ -33,15 +33,12 @@ class SomitiController extends Controller
 
     public function create()
     {
-        // Check if this is the user's first Somiti
-        $isFirstTime = !Auth::user()->somitis()->exists();
-        
-        return \Inertia\Inertia::render('Somitis/Create', ['isFirstTime' => $isFirstTime]);
+        return view('somitis.create');
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate(['name' => 'required|string']);
 
         $somiti = Somiti::create(['name' => $request->input('name'), 'created_by_user_id' => Auth::id()]);
 

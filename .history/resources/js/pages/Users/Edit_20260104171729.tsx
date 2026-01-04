@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 export default function UserEdit({ user }: { user: any }) {
     const [name, setName] = useState(user.name || '');
 
     function submit(e: any) {
         e.preventDefault();
-        router.put(`/users/${user.id}`, { name });
+        Inertia.put(`/users/${user.id}`, { name });
     }
 
     return (

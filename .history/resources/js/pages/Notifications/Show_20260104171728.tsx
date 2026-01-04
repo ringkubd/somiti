@@ -1,9 +1,9 @@
 import React from 'react';
-import { router } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 export default function NotificationShow({ notification }: { notification: any }) {
     function markRead() {
-        router.post(`/api/notifications/${notification.id}/mark-read`);
+        Inertia.post(`/api/notifications/${notification.id}/mark-read`);
         // reload page
         location.reload();
     }
