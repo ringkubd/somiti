@@ -34,6 +34,9 @@ class SomitiManager extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Scope to find currently active managers.
+     */
     public function scopeCurrent($query)
     {
         return $query->whereNull('to_date')->orWhere('to_date', '>=', now());

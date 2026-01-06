@@ -14,7 +14,7 @@ class SomitiMember extends Model
     protected $fillable = [
         'somiti_id',
         'user_id',
-        'role',
+        'role', // 'member', 'admin', etc. within the group
         'is_active',
         'joined_at',
         'left_at',

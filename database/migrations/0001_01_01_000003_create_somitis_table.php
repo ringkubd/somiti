@@ -18,8 +18,11 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('financial_year_start');
             $table->enum('status', ['active', 'closed'])->default('active');
-            // create as unsignedBigInteger now; foreign key will be added after users table exists
+
+            // created_by is nullable initially or constrained to users if users table exists.
+            // Since users table is created before this (0001_01_01_000000), it's safe.
             $table->foreignId('created_by_user_id')->constrained('users')->cascadeOnDelete();
+
             $table->timestamps();
         });
     }

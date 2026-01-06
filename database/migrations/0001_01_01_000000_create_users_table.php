@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('role', ['member', 'manager', 'admin'])->default('member'); // Added role column
             $table->enum('status', ['pending', 'active', 'blocked'])->default('pending');
             $table->rememberToken();
             $table->softDeletes();

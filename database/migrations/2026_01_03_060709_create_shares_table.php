@@ -14,10 +14,15 @@ return new class extends Migration
         Schema::create('shares', function (Blueprint $table) {
             $table->id();
             $table->foreignId('somiti_id')->constrained('somitis')->cascadeOnDelete();
+            // Link to financial year to track share price variations over time
             $table->foreignId('financial_year_id')->constrained('financial_years')->cascadeOnDelete();
-            $table->decimal('share_price', 10, 2);
-            $table->unsignedInteger('total_shares');
+
+            $table->decimal('share_price', 10, 2); // Price per share for this year
+            $table->unsignedInteger('total_shares'); // Total authorized shares or shares issued?
+
             $table->timestamps();
+
+            // Ensure one share configuration per year per somiti
             $table->unique(['somiti_id', 'financial_year_id']);
         });
     }
