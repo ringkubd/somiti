@@ -84,8 +84,6 @@ class Somiti extends Model
         return $this->hasMany(Notification::class);
     }
 
-    // Helper methods
-
     public function addMember(User $user, string $role = 'member'): SomitiMember
     {
         return SomitiMember::create([
@@ -126,7 +124,6 @@ class Somiti extends Model
         return $year->save();
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

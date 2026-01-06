@@ -19,6 +19,8 @@ return new class extends Migration
             $table->date('end_date');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            // Unique financial year per somiti (e.g. only one '2025-26')
             $table->unique(['somiti_id', 'title']);
             $table->index(['somiti_id', 'is_active']);
         });
