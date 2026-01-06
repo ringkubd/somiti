@@ -5,7 +5,6 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -49,35 +48,39 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    /**
-     * Approvals made by this user.
-     */
     public function approvals(): HasMany
     {
         return $this->hasMany(Approval::class);
     }
 
-    /**
-     * Ledger entries associated with this user (their account history).
-     */
     public function ledgerEntries(): HasMany
     {
         return $this->hasMany(Ledger::class);
     }
 
-    /**
-     * Memberships in Somitis.
-     */
     public function somitiMembers(): HasMany
     {
         return $this->hasMany(SomitiMember::class);
     }
 
-    /**
-     * Manager roles in Somitis.
-     */
     public function somitiManagers(): HasMany
     {
         return $this->hasMany(SomitiManager::class);
+    }
+
+    // Added relations back as requested
+    public function deposits(): HasMany
+    {
+        return $this->hasMany(Deposit::class);
+    }
+
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
+
+    public function investments(): HasMany
+    {
+        return $this->hasMany(Investment::class);
     }
 }

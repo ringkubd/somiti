@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Share extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'somiti_id',
@@ -17,20 +16,6 @@ class Share extends Model
         'share_price',
         'total_shares',
     ];
-
-    /**
-     * Get current price for this share (alias)
-     */
-    public function currentPrice(): float
-    {
-        return (float) $this->share_price;
-    }
-
-    public function availableShares(): int
-    {
-        // naive implementation; in future consider reserved/issued
-        return (int) $this->total_shares;
-    }
 
     public function somiti(): BelongsTo
     {

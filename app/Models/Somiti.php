@@ -84,48 +84,8 @@ class Somiti extends Model
         return $this->hasMany(Notification::class);
     }
 
-    public function addMember(User $user, string $role = 'member'): SomitiMember
-    {
-        return SomitiMember::create([
-            'somiti_id' => $this->id,
-            'user_id' => $user->id,
-            'role' => $role,
-            'is_active' => true,
-            'joined_at' => now(),
-        ]);
-    }
-
-    public function removeMember($user): bool
-    {
-        $userId = $user instanceof User ? $user->id : (int) $user;
-        $member = SomitiMember::where('somiti_id', $this->id)->where('user_id', $userId)->first();
-        if (! $member) {
-            return false;
-        }
-
-        // Force-delete to remove membership record permanently
-        return $member->forceDelete();
-    }
-
     public function activeFinancialYear(): ?FinancialYear
     {
         return $this->financialYears()->where('is_active', true)->first();
-    }
-
-    public function setActiveYear(FinancialYear $year): bool
-    {
-        if ($year->somiti_id !== $this->id) {
-            throw new \InvalidArgumentException('Financial year does not belong to this somiti');
-        }
-
-        // use the observer logic but do it programmatically
-        FinancialYear::where('somiti_id', $this->id)->update(['is_active' => false]);
-        $year->is_active = true;
-        return $year->save();
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
     }
 }
