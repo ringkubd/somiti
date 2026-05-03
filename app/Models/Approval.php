@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Approval extends Model
 {
@@ -56,6 +56,7 @@ class Approval extends Model
     {
         $this->status = 'approved';
         $this->decided_at = $this->decided_at ?? now();
+
         return $this->save();
     }
 
@@ -64,6 +65,7 @@ class Approval extends Model
         $this->status = 'rejected';
         $this->comment = $comment ?? $this->comment;
         $this->decided_at = $this->decided_at ?? now();
+
         return $this->save();
     }
 }

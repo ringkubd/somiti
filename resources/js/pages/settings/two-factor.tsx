@@ -1,4 +1,4 @@
-import HeadingSmall from '@/components/heading-small';
+import HeadSmall from '@/components/heading-small';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Badge } from '@/components/ui/badge';
@@ -6,11 +6,26 @@ import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/react';
 import { ShieldBan, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
+
+const twoFactorBase = '/user/two-factor-authentication';
+const disable = {
+    form: () => ({ action: twoFactorBase, method: 'delete' as const }),
+    delete: () => ({ url: twoFactorBase, method: 'delete' as const }),
+    url: () => twoFactorBase,
+};
+const enable = {
+    form: () => ({ action: twoFactorBase, method: 'post' as const }),
+    post: () => ({ url: twoFactorBase, method: 'post' as const }),
+    url: () => twoFactorBase,
+};
+const show = {
+    get: () => ({ url: twoFactorBase, method: 'get' as const }),
+    url: () => twoFactorBase,
+};
 
 interface TwoFactorProps {
     requiresConfirmation?: boolean;

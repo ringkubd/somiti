@@ -35,7 +35,9 @@ class ShareController extends Controller
         ]);
 
         $somitiId = $request->input('somiti_id');
-        if (! (Auth::user()->isManagerOfSomiti($somitiId) || Auth::user()->isOwnerOfSomiti($somitiId))) abort(403);
+        if (! (Auth::user()->isManagerOfSomiti($somitiId) || Auth::user()->isOwnerOfSomiti($somitiId))) {
+            abort(403);
+        }
 
         $share = Share::create($request->only(['somiti_id', 'financial_year_id', 'share_price', 'total_shares']));
 
@@ -46,19 +48,15 @@ class ShareController extends Controller
     {
         $share = $share_type;
 
-        // authorization: require manager or owner — bypassed in tests for now
-        // $somitiId = $share->somiti_id;
-        // if (! (Auth::user()->isManagerOfSomiti($somitiId) || Auth::user()->isOwnerOfSomiti($somitiId))) abort(403);
+        $somitiId = $share->somiti_id;
+        if (! (Auth::user()->isManagerOfSomiti($somitiId) || Auth::user()->isOwnerOfSomiti($somitiId))) {
+            abort(403);
+        }
 
         $request->validate(['price' => 'required|numeric|min:0']);
 
-        // perform a direct query update to avoid unexpected insert if model state is inconsistent
-        \Log::debug('ShareController.update called', ['share_id' => $share->getKey(), 'somiti_id' => $share->somiti_id]);
-        $updated = Share::whereKey($share->getKey())->update(['share_price' => $request->input('price')]);
-        \Log::debug('ShareController.update result', ['updated' => $updated]);
-
-        // reload
-        $share->refresh();
+        $share->share_price = $request->input('price');
+        $share->save();
 
         return response()->json($share);
     }
@@ -67,7 +65,9 @@ class ShareController extends Controller
     {
         $share = $share_type;
 
-        if (! Auth::user()->can('view', $share)) abort(403);
+        if (! Auth::user()->can('view', $share)) {
+            abort(403);
+        }
 
         return response()->json($share);
     }

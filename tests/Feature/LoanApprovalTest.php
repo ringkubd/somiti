@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\FinancialYear;
 use App\Models\Loan;
 use App\Models\Somiti;
 use App\Models\User;
-use App\Models\FinancialYear;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -32,7 +32,7 @@ class LoanApprovalTest extends TestCase
             'financial_year_id' => $fy->id,
             'user_id' => $member->id,
             'amount' => 5000,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         Sanctum::actingAs($manager, ['*']);

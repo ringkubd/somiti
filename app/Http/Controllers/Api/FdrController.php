@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fdr;
-use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,23 +35,29 @@ class FdrController extends Controller
             'maturity_amount' => 'nullable|numeric',
         ]);
 
-        if (! Auth::user()->can('create', [Fdr::class, $request->input('somiti_id')])) abort(403);
+        if (! Auth::user()->can('create', [Fdr::class, $request->input('somiti_id')])) {
+            abort(403);
+        }
 
-        $fdr = Fdr::create(array_merge($request->only(['somiti_id', 'investment_id', 'bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']), ['user_id' => Auth::id()]));
+        $fdr = Fdr::create($request->only(['somiti_id', 'investment_id', 'bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']));
 
         return response()->json($fdr, 201);
     }
 
     public function show(Fdr $fdr)
     {
-        if (! Auth::user()->can('view', $fdr)) abort(403);
+        if (! Auth::user()->can('view', $fdr)) {
+            abort(403);
+        }
 
         return response()->json($fdr->load('somiti', 'investment'));
     }
 
     public function update(Request $request, Fdr $fdr)
     {
-        if (! Auth::user()->can('update', $fdr)) abort(403);
+        if (! Auth::user()->can('update', $fdr)) {
+            abort(403);
+        }
 
         $fdr->update($request->only(['bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']));
 
@@ -61,7 +66,9 @@ class FdrController extends Controller
 
     public function destroy(Fdr $fdr)
     {
-        if (! Auth::user()->can('delete', $fdr)) abort(403);
+        if (! Auth::user()->can('delete', $fdr)) {
+            abort(403);
+        }
 
         $fdr->delete();
 
@@ -70,23 +77,15 @@ class FdrController extends Controller
 
     public function approve(Request $request, Fdr $fdr)
     {
-        if (! Auth::user()->can('approve', $fdr)) abort(403);
+        if (! Auth::user()->can('approve', $fdr)) {
+            abort(403);
+        }
 
         if (isset($fdr->status) && $fdr->status === 'approved') {
             return response()->json(['message' => 'Already approved'], 422);
         }
 
-        $fdr->status = 'approved';
-        $fdr->approved_by = Auth::id();
-        $fdr->approved_at = now();
-        $fdr->save();
-
-        Approval::create([
-            'approvable_id' => $fdr->id,
-            'approvable_type' => Fdr::class,
-            'user_id' => Auth::id(),
-            'status' => 'approved',
-        ]);
+        $fdr->approve(Auth::id());
 
         return response()->json($fdr);
     }

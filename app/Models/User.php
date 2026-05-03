@@ -23,8 +23,17 @@ class User extends Authenticatable
         'name',
         'phone',
         'email',
+        'role',
         'password',
     ];
+
+    /**
+     * Check if user is super admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -118,7 +127,24 @@ class User extends Authenticatable
     {
         $somitiId = $somiti instanceof Somiti ? $somiti->id : (int) $somiti;
 
-        return UserShare::where('user_id', $this->id)->where('somiti_id', $somitiId)->sum('share_count');
+        // Derive share count from ledger member balance divided by share price
+        $balance = \App\Services\AccountingService::getMemberBalance(
+            $this->id,
+            \App\Models\ChartOfAccount::CODE_SHARE_CAPITAL,
+            $somitiId
+        );
+
+        $activeYear = \App\Models\FinancialYear::where('somiti_id', $somitiId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $activeYear || ! $activeYear->share_value || $activeYear->share_value <= 0) {
+            return (int) \App\Models\UserShare::where('user_id', $this->id)
+                ->where('somiti_id', $somitiId)
+                ->sum('share_count');
+        }
+
+        return (int) round($balance / $activeYear->share_value);
     }
 
     public function pendingApprovals()
@@ -140,23 +166,31 @@ class User extends Authenticatable
     public function givePermissionTo(string $name): bool
     {
         $permission = \App\Models\Permission::firstWhere('name', $name);
-        if (! $permission) return false;
+        if (! $permission) {
+            return false;
+        }
         $this->permissions()->syncWithoutDetaching([$permission->id]);
+
         return true;
     }
 
     public function revokePermission(string $name): bool
     {
         $permission = \App\Models\Permission::firstWhere('name', $name);
-        if (! $permission) return false;
+        if (! $permission) {
+            return false;
+        }
         $this->permissions()->detach($permission->id);
+
         return true;
     }
 
     public function hasPermission(string $name): bool
     {
         // super permission
-        if ($this->permissions()->where('name', 'manage_all')->exists()) return true;
+        if ($this->permissions()->where('name', 'manage_all')->exists()) {
+            return true;
+        }
 
         return $this->permissions()->where('name', $name)->exists();
     }

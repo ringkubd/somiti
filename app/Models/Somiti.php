@@ -4,14 +4,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Somiti extends Model
 {
-    use HasFactory, SoftDeletes;
+    use \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
+
+    protected static function booted()
+    {
+        static::creating(function ($somiti) {
+            if (! $somiti->unique_code) {
+                $somiti->unique_code = 'SOM-'.strtoupper(bin2hex(random_bytes(3)));
+            }
+            if (! $somiti->start_date) {
+                $somiti->start_date = now();
+            }
+            if (! $somiti->financial_year_start) {
+                $somiti->financial_year_start = now()->startOfYear();
+            }
+        });
+
+        static::created(function ($somiti) {
+            \App\Services\AccountingService::seedChartOfAccounts($somiti->id);
+        });
+    }
 
     protected $fillable = [
         'name',
@@ -20,6 +39,19 @@ class Somiti extends Model
         'financial_year_start',
         'status',
         'created_by_user_id',
+        'currency',
+        'currency_symbol',
+        'logo_url',
+        'receipt_header',
+        'receipt_footer',
+        'phone',
+        'address',
+        'default_interest_rate',
+        'total_shares',
+        'min_share_per_member',
+        'max_share_per_member',
+        'loan_penalty_rate',
+        'loan_grace_days',
     ];
 
     protected $casts = [
@@ -105,8 +137,10 @@ class Somiti extends Model
             return false;
         }
 
-        // Force-delete to remove membership record permanently
-        return $member->forceDelete();
+        $member->is_active = false;
+        $member->left_at = now();
+
+        return $member->save();
     }
 
     public function activeFinancialYear(): ?FinancialYear
@@ -123,6 +157,7 @@ class Somiti extends Model
         // use the observer logic but do it programmatically
         FinancialYear::where('somiti_id', $this->id)->update(['is_active' => false]);
         $year->is_active = true;
+
         return $year->save();
     }
 

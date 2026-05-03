@@ -28,23 +28,27 @@ class ApprovalController extends Controller
 
     public function decide(Request $request, Approval $approval)
     {
-        if (! Auth::user()->can('decide', $approval)) abort(403);
+        if (! Auth::user()->can('decide', $approval)) {
+            abort(403);
+        }
 
         $request->validate(['decision' => 'required|in:approved,rejected', 'comment' => 'nullable|string']);
+
+        $approvable = $approval->approvable;
 
         if ($request->input('decision') === 'approved') {
             $approval->approve();
             $approval->comment = $request->input('comment');
             $approval->save();
 
-            // apply approval to approvable if method exists
-            if (method_exists($approval->approvable, 'approve')) {
-                $approval->approvable->approve(Auth::id());
+            if ($approvable && method_exists($approvable, 'approve')) {
+                $approvable->approve(Auth::id());
             }
         } else {
             $approval->reject($request->input('comment'));
-            if (method_exists($approval->approvable, 'reject')) {
-                $approval->approvable->reject(Auth::id(), $request->input('comment'));
+
+            if ($approvable && method_exists($approvable, 'reject')) {
+                $approvable->reject(Auth::id(), $request->input('comment'));
             }
         }
 

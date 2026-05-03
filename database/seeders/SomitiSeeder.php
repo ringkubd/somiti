@@ -12,8 +12,8 @@ use App\Models\Loan;
 use App\Models\Notification;
 use App\Models\Share;
 use App\Models\Somiti;
-use App\Models\SomitiMember;
 use App\Models\SomitiManager;
+use App\Models\SomitiMember;
 use App\Models\User;
 use App\Models\UserShare;
 use Illuminate\Database\Seeder;
@@ -24,7 +24,7 @@ class SomitiSeeder extends Seeder
     {
         // Ensure we have users to attach
         $admin = User::firstOrCreate([
-            'email' => 'admin@example.com'
+            'email' => 'admin@example.com',
         ], [
             'name' => 'Admin User',
             'phone' => '01700000001',
@@ -43,7 +43,7 @@ class SomitiSeeder extends Seeder
             for ($i = 0; $i < 2; $i++) {
                 $s = (clone $base)->subYears($i);
                 $e = (clone $s)->addYear();
-                $title = $s->format('Y') . '-' . $e->format('y');
+                $title = $s->format('Y').'-'.$e->format('y');
 
                 $years->push(FinancialYear::firstOrCreate(
                     ['somiti_id' => $somiti->id, 'title' => $title],

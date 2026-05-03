@@ -1,4 +1,20 @@
-import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
+const twoFactorBase = '/user/two-factor-authentication';
+
+const qrCode = {
+    get: () => ({ url: '/user/two-factor-qr-code', method: 'get' }),
+    url: () => '/user/two-factor-qr-code',
+} as const;
+
+const recoveryCodes = {
+    get: () => ({ url: '/user/two-factor-recovery-codes', method: 'get' }),
+    url: () => '/user/two-factor-recovery-codes',
+} as const;
+
+const secretKey = {
+    get: () => ({ url: '/user/two-factor-secret-key', method: 'get' }),
+    url: () => '/user/two-factor-secret-key',
+} as const;
+
 import { useCallback, useMemo, useState } from 'react';
 
 interface TwoFactorSetupData {

@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\FinancialYear;
 use App\Models\Loan;
 use App\Models\Somiti;
-use App\Models\FinancialYear;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,6 +18,7 @@ class LoanFactory extends Factory
     public function definition(): array
     {
         $amount = $this->faker->randomFloat(2, 1000, 50000);
+
         return [
             'somiti_id' => Somiti::factory(),
             'financial_year_id' => FinancialYear::factory(),

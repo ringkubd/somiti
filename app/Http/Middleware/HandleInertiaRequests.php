@@ -45,6 +45,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'selected_somiti_id' => session('selected_somiti_id'),
+            'is_somiti_admin' => session('is_somiti_admin', false),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

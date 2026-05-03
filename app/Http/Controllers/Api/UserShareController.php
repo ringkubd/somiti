@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserShare;
 use App\Models\Approval;
+use App\Models\UserShare;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,7 +31,9 @@ class UserShareController extends Controller
             'share_count' => 'required|integer|min:1',
         ]);
 
-        if (! Auth::user()->can('create', [UserShare::class, $request->input('somiti_id')])) abort(403);
+        if (! Auth::user()->can('create', [UserShare::class, $request->input('somiti_id')])) {
+            abort(403);
+        }
 
         $share = UserShare::create(array_merge($request->only(['somiti_id', 'financial_year_id', 'share_count']), ['user_id' => Auth::id()]));
 
@@ -40,14 +42,18 @@ class UserShareController extends Controller
 
     public function show(UserShare $share)
     {
-        if (! Auth::user()->can('view', $share)) abort(403);
+        if (! Auth::user()->can('view', $share)) {
+            abort(403);
+        }
 
         return response()->json($share->load('somiti', 'financialYear'));
     }
 
     public function update(Request $request, UserShare $share)
     {
-        if (! Auth::user()->can('update', $share)) abort(403);
+        if (! Auth::user()->can('update', $share)) {
+            abort(403);
+        }
 
         $share->update($request->only(['share_count']));
 
@@ -56,7 +62,9 @@ class UserShareController extends Controller
 
     public function destroy(UserShare $share)
     {
-        if (! Auth::user()->can('delete', $share)) abort(403);
+        if (! Auth::user()->can('delete', $share)) {
+            abort(403);
+        }
 
         $share->delete();
 
@@ -65,7 +73,9 @@ class UserShareController extends Controller
 
     public function approve(Request $request, UserShare $share)
     {
-        if (! Auth::user()->can('approve', $share)) abort(403);
+        if (! Auth::user()->can('approve', $share)) {
+            abort(403);
+        }
 
         if (isset($share->status) && $share->status === 'approved') {
             return response()->json(['message' => 'Already approved'], 422);

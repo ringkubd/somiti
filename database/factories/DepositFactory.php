@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Deposit;
-use App\Models\Somiti;
 use App\Models\FinancialYear;
+use App\Models\Somiti;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

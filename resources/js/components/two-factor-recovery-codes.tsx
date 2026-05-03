@@ -6,9 +6,14 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { regenerateRecoveryCodes } from '@/routes/two-factor';
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
+
+const regenerateRecoveryCodes = {
+    form: () => ({ action: '/user/two-factor-recovery-codes', method: 'post' as const }),
+    post: () => ({ url: '/user/two-factor-recovery-codes', method: 'post' as const }),
+    url: () => '/user/two-factor-recovery-codes',
+};
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AlertError from './alert-error';
 

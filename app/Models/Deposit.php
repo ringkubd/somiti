@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Deposit extends Model
 {
-    use HasFactory, SoftDeletes, \App\Traits\HasApprovals;
+    use \App\Traits\HasApprovals, \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'somiti_id',
@@ -29,36 +30,43 @@ class Deposit extends Model
      */
     public function approve(int $approverId): bool
     {
-        $this->status = 'approved';
-        $this->approved_by = $approverId;
-        $this->approved_at = now();
-        $saved = $this->save();
+        return DB::transaction(function () use ($approverId) {
+            $this->status = 'approved';
+            $this->approved_by = $approverId;
+            $this->approved_at = now();
+            $saved = $this->save();
 
-        // create an approval record for audit trail
-        $this->approvals()->create([
-            'user_id' => $approverId,
-            'status' => 'approved',
-            'decided_at' => now(),
-        ]);
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                [
+                    'status' => 'approved',
+                    'decided_at' => now(),
+                ]
+            );
 
-        return $saved;
+            return $saved;
+        });
     }
 
     public function reject(int $approverId, ?string $comment = null): bool
     {
-        $this->status = 'rejected';
-        $this->approved_by = $approverId;
-        $this->approved_at = now();
-        $saved = $this->save();
+        return DB::transaction(function () use ($approverId, $comment) {
+            $this->status = 'rejected';
+            $this->approved_by = $approverId;
+            $this->approved_at = now();
+            $saved = $this->save();
 
-        $this->approvals()->create([
-            'user_id' => $approverId,
-            'status' => 'rejected',
-            'comment' => $comment,
-            'decided_at' => now(),
-        ]);
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                [
+                    'status' => 'rejected',
+                    'comment' => $comment,
+                    'decided_at' => now(),
+                ]
+            );
 
-        return $saved;
+            return $saved;
+        });
     }
 
     protected $casts = [

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\SomitiManager;
 use App\Models\Somiti;
+use App\Models\SomitiManager;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

@@ -22,7 +22,8 @@ class SomitiHelperTest extends TestCase
         $this->assertDatabaseHas('somiti_members', ['somiti_id' => $somiti->id, 'user_id' => $user->id]);
 
         $this->assertTrue($somiti->removeMember($user));
-        $this->assertDatabaseMissing('somiti_members', ['somiti_id' => $somiti->id, 'user_id' => $user->id]);
+        $this->assertDatabaseHas('somiti_members', ['somiti_id' => $somiti->id, 'user_id' => $user->id, 'is_active' => false]);
+        $this->assertNotNull($member->fresh()->left_at);
     }
 
     public function test_set_active_financial_year()

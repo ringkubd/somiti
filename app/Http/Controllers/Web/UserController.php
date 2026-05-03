@@ -11,21 +11,27 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        if (! Auth::user()->can('view', $user)) abort(403);
+        if (! Auth::user()->can('view', $user)) {
+            abort(403);
+        }
 
         return \Inertia\Inertia::render('Users/Show', compact('user'));
     }
 
     public function edit(User $user)
     {
-        if (! Auth::user()->can('update', $user)) abort(403);
+        if (! Auth::user()->can('update', $user)) {
+            abort(403);
+        }
 
         return \Inertia\Inertia::render('Users/Edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
-        if (! Auth::user()->can('update', $user)) abort(403);
+        if (! Auth::user()->can('update', $user)) {
+            abort(403);
+        }
 
         $user->update($request->only(['name', 'email', 'phone']));
 
@@ -34,7 +40,9 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if (! Auth::user()->can('delete', $user)) abort(403);
+        if (! Auth::user()->can('delete', $user)) {
+            abort(403);
+        }
 
         $user->delete();
 

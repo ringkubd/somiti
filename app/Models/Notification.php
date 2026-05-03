@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Notification extends Model
 {
@@ -26,6 +26,15 @@ class Notification extends Model
         'is_read' => 'bool',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (Notification $notification) {
+            if ($notification->somiti_id) {
+                broadcast(new \App\Events\TransactionNotification($notification));
+            }
+        });
+    }
+
     public function notifiable(): MorphTo
     {
         return $this->morphTo();
@@ -41,6 +50,7 @@ class Notification extends Model
     public function markRead(): bool
     {
         $this->is_read = true;
+
         return $this->save();
     }
 

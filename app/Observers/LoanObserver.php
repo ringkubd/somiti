@@ -3,60 +3,55 @@
 namespace App\Observers;
 
 use App\Models\Loan;
-use App\Models\Ledger;
-use Illuminate\Support\Str;
+use App\Services\AccountingService;
 
 class LoanObserver
 {
-    /**
-     * Handle the Loan "updated" event.
-     */
     public function updated(Loan $loan): void
     {
         $originalStatus = $loan->getOriginal('status');
         $newStatus = $loan->status;
 
-        // When loan is approved or disbursed, create ledger entry for disbursement
+        // Approval: notification only, no ledger entry
         if ($originalStatus !== 'approved' && $newStatus === 'approved') {
-            // If loan 'approved' means disbursed in your flow, create debit ledger
-            $exists = Ledger::where('reference_type', Loan::class)
-                ->where('reference_id', $loan->id)
-                ->where('debit', $loan->amount)
-                ->exists();
+            \App\Models\Notification::sendToUser(
+                $loan->user,
+                'Loan Approved',
+                'Your loan application for $'.number_format($loan->amount, 2).' has been approved.',
+                $loan->somiti
+            );
 
-            if ($exists) {
-                return;
-            }
-
-            Ledger::create([
-                'somiti_id' => $loan->somiti_id,
-                'reference_id' => $loan->id,
-                'reference_type' => Loan::class,
-                'debit' => $loan->amount,
-                'credit' => 0,
-                'description' => 'Loan approved/disbursed, user_id:' . $loan->user_id,
-            ]);
+            event(new \App\Events\TransactionEvent(
+                $loan->user_id,
+                'Your loan of $'.number_format($loan->amount, 2).' was approved!',
+                'success',
+                ['loan_id' => $loan->id]
+            ));
         }
 
-        // If you use 'disbursed' status, also handle that
+        // Disbursement: create double-entry journal
         if ($originalStatus !== 'disbursed' && $newStatus === 'disbursed') {
-            $exists = Ledger::where('reference_type', Loan::class)
+            $exists = \App\Models\JournalEntry::where('reference_type', Loan::class)
                 ->where('reference_id', $loan->id)
-                ->where('debit', $loan->amount)
                 ->exists();
 
-            if ($exists) {
-                return;
+            if (! $exists) {
+                AccountingService::recordLoanDisbursement($loan);
             }
 
-            Ledger::create([
-                'somiti_id' => $loan->somiti_id,
-                'reference_id' => $loan->id,
-                'reference_type' => Loan::class,
-                'debit' => $loan->amount,
-                'credit' => 0,
-                'description' => 'Loan disbursed, user_id:' . $loan->user_id,
-            ]);
+            \App\Models\Notification::sendToUser(
+                $loan->user,
+                'Loan Disbursed',
+                'Funds for your loan ($'.number_format($loan->amount, 2).') have been disbursed.',
+                $loan->somiti
+            );
+
+            event(new \App\Events\TransactionEvent(
+                $loan->user_id,
+                'Loan funds ($'.number_format($loan->amount, 2).') disbursed!',
+                'info',
+                ['loan_id' => $loan->id]
+            ));
         }
     }
 }

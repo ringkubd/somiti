@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deposit;
-use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -78,19 +77,7 @@ class DepositController extends Controller
             return response()->json(['message' => 'Already approved'], 422);
         }
 
-        $deposit->status = 'approved';
-        $deposit->approved_by = Auth::id();
-        $deposit->approved_at = now();
-        $deposit->save();
-
-        // create an approval record
-        Approval::create([
-            'approvable_id' => $deposit->id,
-            'approvable_type' => Deposit::class,
-            'user_id' => Auth::id(),
-            'status' => 'approved',
-            'comment' => $request->input('comments'),
-        ]);
+        $deposit->approve(Auth::id());
 
         return response()->json($deposit);
     }

@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Models\Somiti;
 use App\Models\SomitiManager;
-use App\Models\SomitiMember;
 use App\Models\User;
 use App\Models\UserShare;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -8,6 +8,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Api\DashboardController::class, 'index'])->name('dashboard.index');
     Route::apiResource('deposits', App\Http\Controllers\Api\DepositController::class);
     Route::post('deposits/{deposit}/approve', [App\Http\Controllers\Api\DepositController::class, 'approve'])->name('deposits.approve');
 
@@ -30,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Financial years
     Route::apiResource('financial-years', App\Http\Controllers\Api\FinancialYearController::class);
     Route::post('financial-years/{financial_year}/activate', [App\Http\Controllers\Api\FinancialYearController::class, 'activate'])->name('financial-years.activate');
+    Route::post('financial-years/{financial_year}/close', [App\Http\Controllers\Api\FinancialYearController::class, 'close'])->name('financial-years.close');
 
     // Shares (share metadata)
     Route::apiResource('share-types', App\Http\Controllers\Api\ShareController::class);
@@ -42,12 +44,50 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('ledgers', [App\Http\Controllers\Api\LedgerController::class, 'index'])->name('ledgers.index');
     Route::get('ledgers/{ledger}', [App\Http\Controllers\Api\LedgerController::class, 'show'])->name('ledgers.show');
 
-    // Authentication (API) - login is public
+    // Audit Trail
+    Route::get('audit/trail', [App\Http\Controllers\Api\AuditController::class, 'index'])->name('audit.trail');
+    Route::get('audit/trail/{entityType}/{entityId}', [App\Http\Controllers\Api\AuditController::class, 'showByEntity'])->name('audit.entity');
+    Route::get('audit/summary', [App\Http\Controllers\Api\AuditController::class, 'summary'])->name('audit.summary');
+
+    // Financial Reports
+    Route::get('reports/trial-balance', [App\Http\Controllers\Api\LedgerController::class, 'trialBalance'])->name('reports.trial-balance');
+    Route::get('reports/verify', [App\Http\Controllers\Api\LedgerController::class, 'verifyBalancesCheck'])->name('reports.verify');
+    Route::get('reports/summary', [App\Http\Controllers\Api\LedgerController::class, 'summary'])->name('reports.summary');
+
+    // Share Transfers
+    Route::apiResource('share-transfers', App\Http\Controllers\Api\ShareTransferController::class)->only(['index', 'store', 'show']);
+    Route::post('share-transfers/{share_transfer}/approve', [App\Http\Controllers\Api\ShareTransferController::class, 'approve'])->name('share-transfers.approve');
+    Route::post('share-transfers/{share_transfer}/reject', [App\Http\Controllers\Api\ShareTransferController::class, 'reject'])->name('share-transfers.reject');
+
+    // Bank Accounts
+    Route::apiResource('bank-accounts', App\Http\Controllers\Api\BankAccountController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+
+    // Somiti Settings & Members
+    Route::get('somitis/{somiti}/members', [App\Http\Controllers\Api\SomitiController::class, 'members'])->name('somitis.members');
+    Route::get('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiController::class, 'settings'])->name('somitis.settings');
+    Route::put('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiSettingApiController::class, 'update'])->name('somitis.settings.update');
+    Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Api\SomitiController::class, 'workflows'])->name('somitis.workflows');
+    Route::put('somitis/{somiti}/workflows', [App\Http\Controllers\Api\SomitiController::class, 'updateWorkflows'])->name('somitis.workflows.update');
+    Route::get('somitis/{somiti}/financial-years', [App\Http\Controllers\Api\SomitiController::class, 'financialYears'])->name('somitis.financial-years');
+    Route::get('somitis/{somiti}/notification-preferences', [App\Http\Controllers\Api\SomitiController::class, 'notificationPreferences'])->name('somitis.notification-preferences');
+    Route::put('somitis/{somiti}/notification-preferences', [App\Http\Controllers\Api\SomitiController::class, 'updateNotificationPreferences'])->name('somitis.notification-preferences.update');
+    Route::get('somitis/{somiti}/receipts/deposit/{deposit}', [App\Http\Controllers\Api\ReceiptApiController::class, 'deposit'])->name('api.receipts.deposit');
+
+    // Chat
+    Route::get('somitis/{somiti}/messages', [App\Http\Controllers\Api\ChatController::class, 'messages'])->name('api.chat.messages');
+    Route::post('somitis/{somiti}/messages', [App\Http\Controllers\Api\ChatController::class, 'send'])->name('api.chat.send');
+    Route::post('somitis/{somiti}/typing', [App\Http\Controllers\Api\ChatController::class, 'typing'])->name('api.chat.typing');
+    Route::post('chat/upload', [App\Http\Controllers\Api\ChatController::class, 'upload'])->name('api.chat.upload');
+
+    // Authentication (API) - login and register are public
+    Route::post('auth/register', [App\Http\Controllers\Api\AuthController::class, 'register'])->name('auth.register')->withoutMiddleware('auth:sanctum');
     Route::post('auth/login', [App\Http\Controllers\Api\AuthController::class, 'login'])->name('auth.login')->withoutMiddleware('auth:sanctum');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('auth.logout');
         Route::get('auth/me', [App\Http\Controllers\Api\AuthController::class, 'me'])->name('auth.me');
+        Route::put('auth/profile', [App\Http\Controllers\Api\AuthController::class, 'updateProfile'])->name('auth.profile.update');
+        Route::put('auth/password', [App\Http\Controllers\Api\AuthController::class, 'updatePassword'])->name('auth.password.update');
 
         // Somitis
         Route::apiResource('somitis', App\Http\Controllers\Api\SomitiController::class);

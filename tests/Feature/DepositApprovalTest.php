@@ -2,11 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\Approval;
 use App\Models\Deposit;
+use App\Models\FinancialYear;
 use App\Models\Somiti;
 use App\Models\User;
-use App\Models\FinancialYear;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -34,7 +33,7 @@ class DepositApprovalTest extends TestCase
             'financial_year_id' => $fy->id,
             'user_id' => $member->id,
             'amount' => 1000,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         Sanctum::actingAs($manager, ['*']);

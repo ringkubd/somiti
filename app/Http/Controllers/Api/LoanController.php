@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
-use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -85,18 +84,7 @@ class LoanController extends Controller
             return response()->json(['message' => 'Already approved'], 422);
         }
 
-        $loan->status = 'approved';
-        $loan->approved_by = Auth::id();
-        $loan->approved_at = now();
-        $loan->save();
-
-        Approval::create([
-            'approvable_id' => $loan->id,
-            'approvable_type' => Loan::class,
-            'user_id' => Auth::id(),
-            'status' => 'approved',
-            'comment' => $request->input('comments'),
-        ]);
+        $loan->approve(Auth::id());
 
         return response()->json($loan);
     }

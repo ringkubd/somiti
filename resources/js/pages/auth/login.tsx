@@ -25,7 +25,7 @@ export default function Login({
     return (
         <AuthLayout
             title="Log in to your account"
-            description="Enter your phone and password below to log in"
+            description="Enter your email or phone and password to log in"
         >
             <Head title="Log in" />
 
@@ -38,18 +38,18 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="phone">Phone number</Label>
+                                <Label htmlFor="login">Email or Phone</Label>
                                 <Input
-                                    id="phone"
-                                    type="tel"
-                                    name="phone"
+                                    id="login"
+                                    type="text"
+                                    name="login"
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="tel"
-                                    placeholder="e.g. 017XXXXXXXX"
+                                    autoComplete="username"
+                                    placeholder="email@example.com or phone number"
                                 />
-                                <InputError message={errors.phone} />
+                                <InputError message={errors.login || errors.phone} />
                             </div>
 
                             <div className="grid gap-2">

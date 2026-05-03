@@ -5,8 +5,13 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $seo = \App\Models\SeoSetting::where('page_name', 'home')->first();
+    $cms = \App\Models\PageContent::all()->pluck('content', 'section_key');
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'seo' => $seo,
+        'cms' => $cms,
     ]);
 })->name('home');
 
@@ -14,14 +19,39 @@ Route::get('/', function () {
 Route::post('logout', [App\Http\Controllers\Web\AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
 Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCreation::class])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\Web\DashboardController::class, 'index'])->name('dashboard');
 
     // Somitis (web)
     Route::resource('somitis', App\Http\Controllers\Web\SomitiController::class);
-    Route::post('somitis/{somiti}/users', [App\Http\Controllers\Web\SomitiMembershipController::class, 'store'])->name('somitis.users.store');
-    Route::delete('somitis/{somiti}/users/{user}', [App\Http\Controllers\Web\SomitiMembershipController::class, 'destroy'])->name('somitis.users.destroy');
+    Route::get('somitis/{somiti}/settings', [App\Http\Controllers\Web\SomitiSettingController::class, 'edit'])->name('somitis.settings.edit');
+    Route::patch('somitis/{somiti}/settings', [App\Http\Controllers\Web\SomitiSettingController::class, 'update'])->name('somitis.settings.update');
+    Route::get('somitis/{somiti}/members/create', [App\Http\Controllers\Web\SomitiMembershipController::class, 'create'])->name('somitis.members.create');
+    Route::post('somitis/{somiti}/members', [App\Http\Controllers\Web\SomitiMembershipController::class, 'store'])->name('somitis.members.store');
+    Route::delete('somitis/{somiti}/members/{user}', [App\Http\Controllers\Web\SomitiMembershipController::class, 'destroy'])->name('somitis.members.destroy');
+
+    // Receipts
+    Route::get('somitis/{somiti}/receipts/deposit/{deposit}', [App\Http\Controllers\Web\ReceiptController::class, 'deposit'])->name('receipts.deposit');
+    Route::get('somitis/{somiti}/receipts/loan/{loan}', [App\Http\Controllers\Web\ReceiptController::class, 'loan'])->name('receipts.loan');
+
+    // Chat
+    Route::get('chat', [App\Http\Controllers\Web\ChatRedirectController::class, 'index'])->name('chat.index');
+    Route::get('somitis/{somiti}/chat', [App\Http\Controllers\Web\SomitiChatController::class, 'index'])->name('somitis.chat');
+    Route::post('somitis/{somiti}/chat', [App\Http\Controllers\Web\SomitiChatController::class, 'send'])->name('somitis.chat.send');
+    Route::post('somitis/{somiti}/typing', [App\Http\Controllers\Web\SomitiChatController::class, 'typing'])->name('somitis.chat.typing');
+
+    // Reports
+    Route::get('somitis/{somiti}/reports/trial-balance', [App\Http\Controllers\Web\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+    Route::get('somitis/{somiti}/reports/summary', [App\Http\Controllers\Web\ReportController::class, 'summary'])->name('reports.summary');
+
+    // Workflows
+    Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Web\WorkflowController::class, 'edit'])->name('somitis.workflows.edit');
+    Route::put('somitis/{somiti}/workflows', [App\Http\Controllers\Web\WorkflowController::class, 'update'])->name('somitis.workflows.update');
+
+    // Reports admin index
+    Route::get('reports', [App\Http\Controllers\Web\ReportViewController::class, 'index'])->name('reports.index');
+
+    // Bank Accounts
+    Route::resource('bank-accounts', App\Http\Controllers\Web\BankAccountController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
     // Notifications (web)
     Route::get('notifications', [App\Http\Controllers\Web\NotificationController::class, 'index'])->name('notifications.index');
@@ -36,15 +66,37 @@ Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCrea
     Route::delete('users/{user}', [App\Http\Controllers\Web\UserController::class, 'destroy'])->name('users.destroy');
 
     // Other web resources
-    Route::resource('deposits', App\Http\Controllers\Web\DepositController::class)->only(['index', 'show']);
-    Route::resource('loans', App\Http\Controllers\Web\LoanController::class)->only(['index', 'show']);
-    Route::resource('investments', App\Http\Controllers\Web\InvestmentController::class)->only(['index', 'show']);
-    Route::resource('fdrs', App\Http\Controllers\Web\FdrController::class)->only(['index', 'show']);
-    Route::resource('user-shares', App\Http\Controllers\Web\UserShareController::class)->only(['index', 'show']);
+    Route::resource('deposits', App\Http\Controllers\Web\DepositController::class)->only(['index', 'show', 'create', 'store']);
+    Route::resource('loans', App\Http\Controllers\Web\LoanController::class)->only(['index', 'show', 'create', 'store']);
+    Route::resource('investments', App\Http\Controllers\Web\InvestmentController::class)->only(['index', 'show', 'create', 'store']);
+    Route::resource('fdrs', App\Http\Controllers\Web\FdrController::class)->only(['index', 'show', 'create', 'store']);
+    Route::resource('user-shares', App\Http\Controllers\Web\UserShareController::class)->only(['index', 'show', 'create', 'store']);
     Route::resource('share-types', App\Http\Controllers\Web\ShareController::class)->only(['index', 'show']);
-    Route::resource('financial-years', App\Http\Controllers\Web\FinancialYearController::class)->only(['index', 'show']);
+    Route::resource('financial-years', App\Http\Controllers\Web\FinancialYearController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update']);
     Route::resource('ledgers', App\Http\Controllers\Web\LedgerController::class)->only(['index', 'show']);
-    Route::resource('approvals', App\Http\Controllers\Web\ApprovalController::class)->only(['index', 'show']);
+    Route::resource('share-transfers', App\Http\Controllers\Web\ShareTransferController::class)->only(['index', 'create', 'store']);
+
+    Route::resource('approvals', App\Http\Controllers\Web\ApprovalController::class)->only(['index', 'show', 'update']);
+
+    Route::get('profile/{user?}', [App\Http\Controllers\Web\MemberProfileController::class, 'show'])->name('profile.show');
+
+    // Super Admin Routes
+    Route::middleware(['super_admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('dashboard', [App\Http\Controllers\Web\Admin\SuperAdminController::class, 'index'])->name('dashboard');
+        Route::resource('advertisements', App\Http\Controllers\Web\Admin\AdvertisementController::class);
+        Route::resource('users', App\Http\Controllers\Web\Admin\UserController::class)->only(['index', 'update', 'destroy']);
+        Route::resource('seo', App\Http\Controllers\Web\Admin\SeoController::class);
+        Route::get('cms', [App\Http\Controllers\Web\Admin\CmsController::class, 'index'])->name('cms.index');
+        Route::post('cms', [App\Http\Controllers\Web\Admin\CmsController::class, 'update'])->name('cms.update');
+        Route::resource('navigation', App\Http\Controllers\Web\Admin\NavigationController::class);
+        Route::resource('pages', App\Http\Controllers\Web\Admin\PageController::class);
+        Route::resource('blog-posts', App\Http\Controllers\Web\Admin\PostController::class);
+        Route::resource('blog-categories', App\Http\Controllers\Web\Admin\CategoryController::class);
+    });
 });
 
-require __DIR__ . '/settings.php';
+Route::get('blog', [App\Http\Controllers\Web\PublicPageController::class, 'blog'])->name('public.blog');
+Route::get('blog/{slug}', [App\Http\Controllers\Web\PublicPageController::class, 'showPost'])->name('public.blog.show');
+Route::get('p/{slug}', [App\Http\Controllers\Web\PublicPageController::class, 'showPage'])->name('public.page.show');
+
+require __DIR__.'/settings.php';

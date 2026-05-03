@@ -10,20 +10,43 @@ use Illuminate\Support\Facades\Auth;
 
 class SomitiMembershipController extends Controller
 {
+    public function create(Somiti $somiti)
+    {
+        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) {
+            abort(403);
+        }
+
+        // Get users who are not already members of this somiti
+        $existingMemberIds = $somiti->members()->pluck('user_id');
+        $availableUsers = User::whereNotIn('id', $existingMemberIds)->get(['id', 'name', 'email']);
+
+        return \Inertia\Inertia::render('Somitis/Members/Create', [
+            'somiti' => $somiti,
+            'availableUsers' => $availableUsers,
+        ]);
+    }
+
     public function store(Request $request, Somiti $somiti)
     {
-        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) abort(403);
+        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) {
+            abort(403);
+        }
 
-        $request->validate(['user_id' => 'required|exists:users,id', 'role' => 'nullable|string']);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role' => 'required|in:member,manager,owner',
+        ]);
 
-        $somiti->addMember(User::findOrFail($request->input('user_id')), $request->input('role', 'member'));
+        $somiti->addMember(User::findOrFail($request->input('user_id')), $request->input('role'));
 
-        return redirect()->route('somitis.show', $somiti);
+        return redirect()->route('somitis.show', $somiti)->with('success', 'Member added successfully.');
     }
 
     public function destroy(Somiti $somiti, User $user)
     {
-        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) abort(403);
+        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) {
+            abort(403);
+        }
 
         $somiti->removeMember($user);
 

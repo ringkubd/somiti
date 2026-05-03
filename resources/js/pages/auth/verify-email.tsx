@@ -4,8 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { logout } from '@/routes';
-import { send } from '@/routes/verification';
 import { Form, Head } from '@inertiajs/react';
+
+const sendVerification = '/email/verification-notification';
+
+const send = {
+    form: () => ({ action: sendVerification, method: 'post' as const }),
+    url: () => sendVerification,
+    post: (options?: any) => ({ url: sendVerification, method: 'post' as const }),
+};
 
 export default function VerifyEmail({ status }: { status?: string }) {
     return (

@@ -23,7 +23,7 @@ class EnsureFirstTimeSomitiCreation
         // Only apply to authenticated users
         if (auth()->check()) {
             // If user has no Somitis, redirect to create one
-            if (!auth()->user()->somitis()->exists() && !$request->expectsJson()) {
+            if (! auth()->user()->somitis()->exists() && ! $request->expectsJson()) {
                 return redirect()->route('somitis.create');
             }
         }

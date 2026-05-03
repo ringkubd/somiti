@@ -1,5 +1,3 @@
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
@@ -13,6 +11,9 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
+
+const sendVerification = '/email/verification-notification';
+const send = () => sendVerification;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,7 +43,8 @@ export default function Profile({
                     />
 
                     <Form
-                        {...ProfileController.update.form()}
+                        action={edit().url}
+                        method="patch"
                         options={{
                             preserveScroll: true,
                         }}

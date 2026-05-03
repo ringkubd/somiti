@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Ledger extends Model
 {
-    use HasFactory;
+    use \App\Traits\HasTenantScope, HasFactory;
 
     protected $fillable = [
         'somiti_id',
@@ -24,6 +24,26 @@ class Ledger extends Model
         'debit' => 'decimal:2',
         'credit' => 'decimal:2',
     ];
+
+    /**
+     * Ledger entries are immutable — prevent updates to existing records.
+     */
+    public function save(array $options = [])
+    {
+        if ($this->exists) {
+            throw new \RuntimeException('Ledger entries cannot be modified.');
+        }
+
+        return parent::save($options);
+    }
+
+    /**
+     * Ledger entries are immutable — prevent deletion.
+     */
+    public function delete()
+    {
+        throw new \RuntimeException('Ledger entries cannot be deleted.');
+    }
 
     public function somiti(): BelongsTo
     {
@@ -45,11 +65,11 @@ class Ledger extends Model
             ->where('reference_id', $attributes['reference_id'])
             ->where('somiti_id', $attributes['somiti_id']);
 
-        if (!empty($attributes['credit'])) {
+        if (! empty($attributes['credit'])) {
             $query->where('credit', $attributes['credit']);
         }
 
-        if (!empty($attributes['debit'])) {
+        if (! empty($attributes['debit'])) {
             $query->where('debit', $attributes['debit']);
         }
 

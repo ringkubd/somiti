@@ -5,28 +5,36 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
     public function index()
     {
-        $notifications = Notification::where(function ($q) {
-            $q->where('user_id', Auth::id())->orWhereNotNull('somiti_id');
-        })->orderByDesc('created_at')->paginate(25);
+        $notifications = auth()->user()->notifications()
+            ->with(['somiti'])
+            ->latest()
+            ->paginate(20);
 
-        return \Inertia\Inertia::render('Notifications/Index', compact('notifications'));
+        return \Inertia\Inertia::render('Notifications/Index', [
+            'notifications' => $notifications,
+        ]);
     }
 
     public function show(Notification $notification)
     {
-        if (! Auth::user()->can('view', $notification)) abort(403);
+        if (! Auth::user()->can('view', $notification)) {
+            abort(403);
+        }
 
         return \Inertia\Inertia::render('Notifications/Show', ['notification' => $notification]);
     }
 
     public function markRead(Notification $notification)
     {
-        if (! Auth::user()->can('markRead', $notification)) abort(403);
+        if (! Auth::user()->can('markRead', $notification)) {
+            abort(403);
+        }
 
         $notification->markRead();
 
@@ -35,7 +43,9 @@ class NotificationController extends Controller
 
     public function destroy(Notification $notification)
     {
-        if (! Auth::user()->can('delete', $notification)) abort(403);
+        if (! Auth::user()->can('delete', $notification)) {
+            abort(403);
+        }
 
         $notification->delete();
 

@@ -90,7 +90,7 @@ test('web logout revokes personal access tokens', function () {
 test('users are rate limited', function () {
     $user = User::factory()->create();
 
-    RateLimiter::increment(md5('login' . implode('|', [$user->phone, '127.0.0.1'])), amount: 5);
+    RateLimiter::increment(md5('login'.implode('|', [$user->phone, '127.0.0.1'])), amount: 5);
 
     $response = $this->post(route('login.store'), [
         'phone' => $user->phone,

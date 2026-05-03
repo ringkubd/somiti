@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\UserShare;
 use App\Models\User;
+use App\Models\UserShare;
 
 class UserSharePolicy
 {

@@ -20,7 +20,7 @@ class FinancialYearFactory extends Factory
 
         return [
             'somiti_id' => Somiti::factory(),
-            'title' => $start->format('Y') . '-' . $end->format('y'),
+            'title' => $start->format('Y').'-'.$end->format('y'),
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $end->format('Y-m-d'),
             'is_active' => false,

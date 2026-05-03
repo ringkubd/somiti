@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\FinancialYear;
 use App\Models\Investment;
 use App\Models\Somiti;
-use App\Models\FinancialYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

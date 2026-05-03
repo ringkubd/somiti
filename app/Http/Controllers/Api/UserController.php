@@ -11,14 +11,18 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        if (! Auth::user()->can('view', $user)) abort(403);
+        if (! Auth::user()->can('view', $user)) {
+            abort(403);
+        }
 
         return response()->json($user);
     }
 
     public function update(Request $request, User $user)
     {
-        if (! Auth::user()->can('update', $user)) abort(403);
+        if (! Auth::user()->can('update', $user)) {
+            abort(403);
+        }
 
         $attrs = $request->only(['name', 'phone', 'email']);
         $user->update($attrs);
@@ -28,7 +32,9 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if (! Auth::user()->can('delete', $user)) abort(403);
+        if (! Auth::user()->can('delete', $user)) {
+            abort(403);
+        }
 
         $user->delete();
 
@@ -46,6 +52,7 @@ class UserController extends Controller
         // global admin
         if ($acting->hasPermission('manage_all')) {
             $user->givePermissionTo($perm);
+
             return response()->json(['assigned' => true]);
         }
 
@@ -55,6 +62,7 @@ class UserController extends Controller
             if ($acting->isOwnerOfSomiti($sid) || $acting->isManagerOfSomiti($sid)) {
                 if ($perm === 'manage_somiti_members') {
                     $user->givePermissionTo($perm);
+
                     return response()->json(['assigned' => true]);
                 }
             }
@@ -72,6 +80,7 @@ class UserController extends Controller
 
         if ($acting->hasPermission('manage_all')) {
             $user->revokePermission($perm);
+
             return response()->json(['revoked' => true]);
         }
 
@@ -80,6 +89,7 @@ class UserController extends Controller
             if ($acting->isOwnerOfSomiti($sid) || $acting->isManagerOfSomiti($sid)) {
                 if ($perm === 'manage_somiti_members') {
                     $user->revokePermission($perm);
+
                     return response()->json(['revoked' => true]);
                 }
             }

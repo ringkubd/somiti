@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\Notification;
-use App\Models\User;
 use App\Models\Somiti;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class NotificationPolicy
@@ -14,7 +14,9 @@ class NotificationPolicy
     public function view(User $user, Notification $notification): bool
     {
         // allow global permission
-        if ($user->hasPermission('manage_notifications')) return true;
+        if ($user->hasPermission('manage_notifications')) {
+            return true;
+        }
 
         // if notification targets a Somiti (notifiable_type), allow somiti members/managers/owner
         if ($notification->notifiable_type === \App\Models\Somiti::class && $notification->somiti_id) {

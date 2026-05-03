@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\UserShare;
-use App\Models\User;
-use App\Models\Somiti;
 use App\Models\FinancialYear;
+use App\Models\Somiti;
+use App\Models\User;
+use App\Models\UserShare;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

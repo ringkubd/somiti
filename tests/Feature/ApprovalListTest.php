@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Approval;
 use App\Models\Deposit;
+use App\Models\FinancialYear;
 use App\Models\Somiti;
 use App\Models\User;
-use App\Models\FinancialYear;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;

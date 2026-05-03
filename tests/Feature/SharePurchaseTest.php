@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\UserShare;
+use App\Models\FinancialYear;
 use App\Models\Somiti;
 use App\Models\User;
-use App\Models\FinancialYear;
+use App\Models\UserShare;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;

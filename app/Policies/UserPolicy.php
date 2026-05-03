@@ -11,30 +11,42 @@ class UserPolicy
 
     public function view(User $user, User $model): bool
     {
-        if ($user->id === $model->id) return true;
+        if ($user->id === $model->id) {
+            return true;
+        }
 
         // allow global permission
-        if ($user->hasPermission('manage_users')) return true;
+        if ($user->hasPermission('manage_users')) {
+            return true;
+        }
 
         return $this->manageAsSomitiAdmin($user, $model);
     }
 
     public function update(User $user, User $model): bool
     {
-        if ($user->id === $model->id) return true;
+        if ($user->id === $model->id) {
+            return true;
+        }
 
         // allow global permission
-        if ($user->hasPermission('manage_users')) return true;
+        if ($user->hasPermission('manage_users')) {
+            return true;
+        }
 
         return $this->manageAsSomitiAdmin($user, $model);
     }
 
     public function delete(User $user, User $model): bool
     {
-        if ($user->id === $model->id) return true;
+        if ($user->id === $model->id) {
+            return true;
+        }
 
         // allow global permission
-        if ($user->hasPermission('manage_users')) return true;
+        if ($user->hasPermission('manage_users')) {
+            return true;
+        }
 
         return $this->manageAsSomitiAdmin($user, $model);
     }

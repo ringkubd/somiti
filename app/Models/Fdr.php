@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Fdr extends Model
 {
-    use HasFactory, SoftDeletes;
+    use \App\Traits\HasApprovals, \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'somiti_id',
@@ -19,6 +20,47 @@ class Fdr extends Model
         'tenure_months',
         'maturity_amount',
     ];
+
+    public function approve(int $approverId): bool
+    {
+        return DB::transaction(function () use ($approverId) {
+            $this->status = 'approved';
+            $this->approved_by = $approverId;
+            $this->approved_at = now();
+            $saved = $this->save();
+
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                [
+                    'status' => 'approved',
+                    'decided_at' => now(),
+                ]
+            );
+
+            return $saved;
+        });
+    }
+
+    public function reject(int $approverId, ?string $comment = null): bool
+    {
+        return DB::transaction(function () use ($approverId, $comment) {
+            $this->status = 'rejected';
+            $this->approved_by = $approverId;
+            $this->approved_at = now();
+            $saved = $this->save();
+
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                [
+                    'status' => 'rejected',
+                    'comment' => $comment,
+                    'decided_at' => now(),
+                ]
+            );
+
+            return $saved;
+        });
+    }
 
     public function investment(): BelongsTo
     {

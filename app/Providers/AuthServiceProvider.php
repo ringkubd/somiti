@@ -26,6 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         Ledger::class => \App\Policies\LedgerPolicy::class,
         \App\Models\Notification::class => \App\Policies\NotificationPolicy::class,
         \App\Models\User::class => \App\Policies\UserPolicy::class,
+        \App\Models\ShareTransfer::class => \App\Policies\ShareTransferPolicy::class,
     ];
 
     public function boot()

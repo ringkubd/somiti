@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Somiti;
 use App\Models\SomitiMember;
 use App\Models\User;
-use App\Models\Somiti;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

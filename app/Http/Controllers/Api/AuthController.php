@@ -10,28 +10,54 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'required|string|max:20|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+        ]);
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user' => $user,
+        ], 201);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
-            'phone' => 'required',
+            'login' => 'required_without:phone|string',
+            'phone' => 'required_without:login|string',
             'password' => 'required',
         ]);
 
-        $user = User::where('phone', $request->input('phone'))->first();
+        $credential = $request->input('login') ?? $request->input('phone');
+
+        $user = User::where('phone', $credential)
+            ->orWhere('email', $credential)
+            ->first();
 
         if (! $user) {
-            \Log::debug('AuthController.login: user not found', ['phone' => $request->input('phone')]);
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         $valid = Hash::check($request->input('password'), $user->password);
-        \Log::debug('AuthController.login: password check', ['phone' => $request->input('phone'), 'valid' => $valid]);
 
         if (! $valid) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // create token
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $user]);
@@ -51,7 +77,7 @@ class AuthController extends Controller
             } else {
                 \Log::debug('AuthController.logout no currentAccessToken found');
             }
-        } else if ($user) {
+        } elseif ($user) {
             // delete all tokens
             $deleted = $user->tokens()->delete();
             \Log::debug('AuthController.logout deleted all tokens', ['deleted' => $deleted]);
@@ -90,9 +116,39 @@ class AuthController extends Controller
         // Ensure the token instance exists in DB (was not deleted)
         if (! $request->bearerToken() || ! ($accessToken instanceof \Laravel\Sanctum\PersonalAccessToken) || ! \Laravel\Sanctum\PersonalAccessToken::where('id', $accessToken->id)->exists()) {
             \Log::debug('AuthController.me denying access', ['bearer' => $request->bearerToken(), 'accessToken' => $accessToken]);
+
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
         return response()->json($request->user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255|unique:users,email,'.$user->id,
+            'phone' => 'string|max:20|unique:users,phone,'.$user->id,
+        ]);
+
+        $user->update($validated);
+
+        return response()->json($user);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Password updated.']);
     }
 }

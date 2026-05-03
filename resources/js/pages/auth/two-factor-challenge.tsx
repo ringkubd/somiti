@@ -8,8 +8,14 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import AuthLayout from '@/layouts/auth-layout';
-import { store } from '@/routes/two-factor/login';
 import { Form, Head } from '@inertiajs/react';
+
+const twoFactorUrl = '/user/two-factor-challenge';
+const store = {
+    form: () => ({ action: twoFactorUrl, method: 'post' as const }),
+    url: () => twoFactorUrl,
+    post: (options?: any) => ({ url: twoFactorUrl, method: 'post' as const }),
+};
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 
