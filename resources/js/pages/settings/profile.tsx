@@ -78,9 +78,8 @@ export default function Profile({
                                         id="email"
                                         type="email"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.email}
+                                        defaultValue={auth.user.email ?? undefined}
                                         name="email"
-                                        required
                                         autoComplete="username"
                                         placeholder="Email address"
                                     />
@@ -91,7 +90,27 @@ export default function Profile({
                                     />
                                 </div>
 
-                                {mustVerifyEmail &&
+                                <div className="grid gap-2">
+                                    <Label htmlFor="phone">Phone number</Label>
+
+                                    <Input
+                                        id="phone"
+                                        type="tel"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.phone ?? undefined}
+                                        name="phone"
+                                        autoComplete="tel"
+                                        placeholder="Phone number"
+                                    />
+
+                                    <p className="text-xs text-muted-foreground">At least one of email or phone is required.</p>
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.phone}
+                                    />
+                                </div>
+
+                                {mustVerifyEmail && auth.user.email &&
                                     auth.user.email_verified_at === null && (
                                         <div>
                                             <p className="-mt-4 text-sm text-muted-foreground">

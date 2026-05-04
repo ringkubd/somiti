@@ -39,9 +39,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     register: async (name, email, phone, password) => {
-        const { data } = await client.post('/auth/register', {
-            name, email, phone, password, password_confirmation: password,
-        });
+        const payload: Record<string, string> = {
+            name,
+            password,
+            password_confirmation: password,
+        };
+        if (email) payload.email = email;
+        if (phone) payload.phone = phone;
+        const { data } = await client.post('/auth/register', payload);
         await SecureStore.setItemAsync('auth_token', data.token);
         set({ token: data.token, user: data.user });
     },

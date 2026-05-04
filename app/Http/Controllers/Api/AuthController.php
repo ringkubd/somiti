@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PushToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,15 +15,18 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20|unique:users',
+            'email' => 'required_without:phone|string|email|max:255|unique:users',
+            'phone' => 'required_without:email|string|max:20|unique:users',
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required_without' => 'The email or phone field is required.',
+            'phone.required_without' => 'The email or phone field is required.',
         ]);
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
+            'email' => $request->email ?? null,
+            'phone' => $request->phone ?? null,
             'password' => Hash::make($request->password),
         ]);
 
@@ -40,6 +44,9 @@ class AuthController extends Controller
             'login' => 'required_without:phone|string',
             'phone' => 'required_without:login|string',
             'password' => 'required',
+        ], [
+            'login.required_without' => 'The email or phone field is required.',
+            'phone.required_without' => 'The email or phone field is required.',
         ]);
 
         $credential = $request->input('login') ?? $request->input('phone');
@@ -150,5 +157,22 @@ class AuthController extends Controller
         $user->update(['password' => Hash::make($request->password)]);
 
         return response()->json(['message' => 'Password updated.']);
+    }
+
+    public function pushToken(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'token' => 'required|string',
+            'platform' => 'nullable|string',
+        ]);
+
+        PushToken::updateOrCreate(
+            ['user_id' => $user->id, 'token' => $validated['token']],
+            ['platform' => $validated['platform'] ?? null]
+        );
+
+        return response()->json(['message' => 'Token registered.']);
     }
 }

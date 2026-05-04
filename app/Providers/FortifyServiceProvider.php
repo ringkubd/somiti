@@ -48,6 +48,9 @@ class FortifyServiceProvider extends ServiceProvider
                 'login' => 'required_without:phone|string',
                 'phone' => 'required_without:login|string',
                 'password' => 'required',
+            ], [
+                'login.required_without' => 'The email or phone field is required.',
+                'phone.required_without' => 'The email or phone field is required.',
             ]);
 
             $credential = $request->input('login') ?? $request->input('phone');
@@ -100,7 +103,8 @@ class FortifyServiceProvider extends ServiceProvider
     {
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $loginInput = $request->input('login') ?? $request->input('phone') ?? '';
+            $throttleKey = Str::transliterate(Str::lower($loginInput)).'|'.$request->ip();
 
             return Limit::perMinute(5)->by($throttleKey);
         });

@@ -22,12 +22,13 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'phone' => [
-                'required',
+                'required_without:email',
                 'string',
                 'max:20',
                 Rule::unique(User::class),
             ],
             'email' => [
+                'required_without:phone',
                 'nullable',
                 'string',
                 'email',
@@ -35,11 +36,14 @@ class CreateNewUser implements CreatesNewUsers
                 'unique:users,email',
             ],
             'password' => $this->passwordRules(),
+        ], [
+            'phone.required_without' => 'The email or phone field is required.',
+            'email.required_without' => 'The email or phone field is required.',
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
-            'phone' => $input['phone'],
+            'phone' => $input['phone'] ?? null,
             'email' => $input['email'] ?? null,
             'password' => $input['password'],
         ]);

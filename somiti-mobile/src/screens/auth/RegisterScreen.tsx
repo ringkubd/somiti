@@ -11,8 +11,8 @@ export default function RegisterScreen({ navigation }: any) {
     const register = useAuthStore((s) => s.register);
 
     const handleRegister = async () => {
-        if (!name || !email || !phone || !password) {
-            Alert.alert('Error', 'Fill all fields');
+        if (!name || (!email && !phone) || !password) {
+            Alert.alert('Error', 'Please provide at least an email or phone number, along with your name and password');
             return;
         }
         setLoading(true);

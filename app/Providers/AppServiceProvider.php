@@ -11,7 +11,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Override Fortify's LoginRequest with our custom one that accepts
+        // either a "login" (email/phone) or "phone" field, instead of
+        // requiring the Fortify-configured username field (phone) as mandatory.
+        $this->app->bind(
+            \Laravel\Fortify\Http\Requests\LoginRequest::class,
+            \App\Http\Requests\LoginRequest::class,
+        );
     }
 
     /**
