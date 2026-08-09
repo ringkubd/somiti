@@ -86,6 +86,11 @@ class Somiti extends Model
         return $this->hasMany(FinancialYear::class);
     }
 
+    public function dividendDeclarations(): HasMany
+    {
+        return $this->hasMany(DividendDeclaration::class);
+    }
+
     public function shares(): HasMany
     {
         return $this->hasMany(Share::class);

@@ -31,6 +31,17 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Loan::observe(\App\Observers\LoanObserver::class);
         \App\Models\Loan::observe(\App\Observers\AuditObserver::class);
 
+        \App\Models\LoanRepayment::observe(\App\Observers\LoanRepaymentObserver::class);
+        \App\Models\LoanRepayment::observe(\App\Observers\AuditObserver::class);
+
+        \App\Models\DividendDeclaration::observe(\App\Observers\AuditObserver::class);
+
+        \App\Models\Withdrawal::observe(\App\Observers\WithdrawalObserver::class);
+        \App\Models\Withdrawal::observe(\App\Observers\AuditObserver::class);
+
+        \App\Models\Penalty::observe(\App\Observers\PenaltyObserver::class);
+        \App\Models\Penalty::observe(\App\Observers\AuditObserver::class);
+
         \App\Models\Approval::observe(\App\Observers\ApprovalObserver::class);
         \App\Models\Approval::observe(\App\Observers\AuditObserver::class);
 

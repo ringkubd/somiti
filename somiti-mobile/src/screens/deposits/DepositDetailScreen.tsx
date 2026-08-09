@@ -36,6 +36,9 @@ export default function DepositDetailScreen({ route, navigation }: any) {
                 <DetailRow label="Date" value={new Date(deposit.created_at).toLocaleDateString()} />
                 {deposit.approver && <DetailRow label="Approved by" value={deposit.approver.name} />}
             </View>
+            <TouchableOpacity style={styles.receiptBtn} onPress={() => navigation.navigate('DepositReceipt', { somitiId: deposit.somiti_id, depositId: deposit.id })}>
+                <Text style={styles.receiptText}>View Receipt</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
@@ -60,4 +63,6 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
     label: { fontSize: 14, color: '#64748b' },
     value: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
+    receiptBtn: { backgroundColor: '#2563eb', marginHorizontal: 20, borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 20 },
+    receiptText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 });

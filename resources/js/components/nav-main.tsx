@@ -24,9 +24,14 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             )}
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={item.href} prefetch>
+                        <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
+                                {item.badge ? (
+                                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white">
+                                        {item.badge}
+                                    </span>
+                                ) : null}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

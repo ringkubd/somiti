@@ -22,11 +22,13 @@ Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCrea
     Route::get('dashboard', [App\Http\Controllers\Web\DashboardController::class, 'index'])->name('dashboard');
 
     // Somitis (web)
-    Route::resource('somitis', App\Http\Controllers\Web\SomitiController::class);
+    Route::resource('somitis', App\Http\Controllers\Web\SomitiController::class)
+        ->names(['destroy' => 'somitis.web.destroy']);
     Route::get('somitis/{somiti}/settings', [App\Http\Controllers\Web\SomitiSettingController::class, 'edit'])->name('somitis.settings.edit');
     Route::patch('somitis/{somiti}/settings', [App\Http\Controllers\Web\SomitiSettingController::class, 'update'])->name('somitis.settings.update');
     Route::get('somitis/{somiti}/members/create', [App\Http\Controllers\Web\SomitiMembershipController::class, 'create'])->name('somitis.members.create');
     Route::post('somitis/{somiti}/members', [App\Http\Controllers\Web\SomitiMembershipController::class, 'store'])->name('somitis.members.store');
+    Route::put('somitis/{somiti}/members/{user}', [App\Http\Controllers\Web\SomitiMembershipController::class, 'update'])->name('somitis.members.update');
     Route::delete('somitis/{somiti}/members/{user}', [App\Http\Controllers\Web\SomitiMembershipController::class, 'destroy'])->name('somitis.members.destroy');
 
     // Receipts
@@ -40,8 +42,42 @@ Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCrea
     Route::post('somitis/{somiti}/typing', [App\Http\Controllers\Web\SomitiChatController::class, 'typing'])->name('somitis.chat.typing');
 
     // Reports
-    Route::get('somitis/{somiti}/reports/trial-balance', [App\Http\Controllers\Web\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
-    Route::get('somitis/{somiti}/reports/summary', [App\Http\Controllers\Web\ReportController::class, 'summary'])->name('reports.summary');
+    Route::get('somitis/{somiti}/reports/trial-balance', [App\Http\Controllers\Web\ReportController::class, 'trialBalance'])->name('somitis.reports.trial-balance');
+    Route::get('somitis/{somiti}/reports/summary', [App\Http\Controllers\Web\ReportController::class, 'summary'])->name('somitis.reports.summary');
+    Route::get('somitis/{somiti}/reports/member-statement', [App\Http\Controllers\Web\ReportController::class, 'memberStatement'])->name('somitis.reports.member-statement');
+    Route::get('somitis/{somiti}/reports/summary.csv', [App\Http\Controllers\Web\ReportController::class, 'summaryCsv'])->name('somitis.reports.summary.csv');
+    Route::get('somitis/{somiti}/reports/member-statement.csv', [App\Http\Controllers\Web\ReportController::class, 'memberStatementCsv'])->name('somitis.reports.member-statement.csv');
+
+    // Loan Repayments
+    Route::get('repayments', [App\Http\Controllers\Web\LoanRepaymentController::class, 'index'])->name('web.repayments.index');
+    Route::get('repayments/{repayment}', [App\Http\Controllers\Web\LoanRepaymentController::class, 'show'])->name('web.repayments.show');
+    Route::get('loans/{loan}/repayments', [App\Http\Controllers\Web\LoanRepaymentController::class, 'forLoan'])->name('web.loans.repayments.index');
+    Route::post('loans/{loan}/repayments', [App\Http\Controllers\Web\LoanRepaymentController::class, 'store'])->name('web.loans.repayments.store');
+    Route::post('repayments/{repayment}/approve', [App\Http\Controllers\Web\LoanRepaymentController::class, 'approve'])->name('web.repayments.approve');
+    Route::post('repayments/{repayment}/reject', [App\Http\Controllers\Web\LoanRepaymentController::class, 'reject'])->name('web.repayments.reject');
+
+    // Withdrawals
+    Route::get('withdrawals', [App\Http\Controllers\Web\WithdrawalController::class, 'index'])->name('web.withdrawals.index');
+    Route::get('withdrawals/create', [App\Http\Controllers\Web\WithdrawalController::class, 'create'])->name('web.withdrawals.create');
+    Route::post('withdrawals', [App\Http\Controllers\Web\WithdrawalController::class, 'store'])->name('web.withdrawals.store');
+    Route::get('withdrawals/{withdrawal}', [App\Http\Controllers\Web\WithdrawalController::class, 'show'])->name('web.withdrawals.show');
+    Route::post('withdrawals/{withdrawal}/approve', [App\Http\Controllers\Web\WithdrawalController::class, 'approve'])->name('web.withdrawals.approve');
+    Route::post('withdrawals/{withdrawal}/reject', [App\Http\Controllers\Web\WithdrawalController::class, 'reject'])->name('web.withdrawals.reject');
+
+    // Dividends
+    Route::get('somitis/{somiti}/dividends', [App\Http\Controllers\Web\DividendController::class, 'index'])->name('web.somitis.dividends.index');
+    Route::post('somitis/{somiti}/dividends', [App\Http\Controllers\Web\DividendController::class, 'store'])->name('web.somitis.dividends.store');
+    Route::get('dividends/{declaration}', [App\Http\Controllers\Web\DividendController::class, 'show'])->name('web.dividends.show');
+    Route::post('dividends/{declaration}/approve', [App\Http\Controllers\Web\DividendController::class, 'approve'])->name('web.dividends.approve');
+    Route::post('dividends/{declaration}/reject', [App\Http\Controllers\Web\DividendController::class, 'reject'])->name('web.dividends.reject');
+
+    // Penalties
+    Route::get('penalties', [App\Http\Controllers\Web\PenaltyController::class, 'index'])->name('web.penalties.index');
+    Route::get('penalties/create', [App\Http\Controllers\Web\PenaltyController::class, 'create'])->name('web.penalties.create');
+    Route::post('penalties', [App\Http\Controllers\Web\PenaltyController::class, 'store'])->name('web.penalties.store');
+    Route::get('penalties/{penalty}', [App\Http\Controllers\Web\PenaltyController::class, 'show'])->name('web.penalties.show');
+    Route::post('penalties/{penalty}/approve', [App\Http\Controllers\Web\PenaltyController::class, 'approve'])->name('web.penalties.approve');
+    Route::post('penalties/{penalty}/reject', [App\Http\Controllers\Web\PenaltyController::class, 'reject'])->name('web.penalties.reject');
 
     // Workflows
     Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Web\WorkflowController::class, 'edit'])->name('somitis.workflows.edit');

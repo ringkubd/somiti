@@ -11,7 +11,7 @@ test('email verification screen can be rendered', function () {
     $response = $this->actingAs($user)->get(route('verification.notice'));
 
     $response->assertStatus(200);
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('email can be verified', function () {
     $user = User::factory()->unverified()->create();
@@ -29,7 +29,7 @@ test('email can be verified', function () {
     Event::assertDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('email is not verified with invalid hash', function () {
     $user = User::factory()->unverified()->create();
@@ -43,7 +43,7 @@ test('email is not verified with invalid hash', function () {
     $this->actingAs($user)->get($verificationUrl);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('email is not verified with invalid user id', function () {
     $user = User::factory()->create([
@@ -59,7 +59,7 @@ test('email is not verified with invalid user id', function () {
     $this->actingAs($user)->get($verificationUrl);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('verified user is redirected to dashboard from verification prompt', function () {
     $user = User::factory()->create([
@@ -69,7 +69,7 @@ test('verified user is redirected to dashboard from verification prompt', functi
     $response = $this->actingAs($user)->get(route('verification.notice'));
 
     $response->assertRedirect(route('dashboard', absolute: false));
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('already verified user visiting verification link is redirected without firing event again', function () {
     $user = User::factory()->create([
@@ -89,4 +89,4 @@ test('already verified user visiting verification link is redirected without fir
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     Event::assertNotDispatched(Verified::class);
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');

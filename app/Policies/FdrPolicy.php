@@ -7,14 +7,14 @@ use App\Models\User;
 
 class FdrPolicy
 {
-    public function view(User $user, Fdr $fdr): bool
-    {
-        return $user->isMemberOfSomiti($fdr->somiti_id) || $user->isManagerOfSomiti($fdr->somiti_id) || $user->isOwnerOfSomiti($fdr->somiti_id);
-    }
-
     public function create(User $user, $somitiId): bool
     {
         return $user->isManagerOfSomiti($somitiId) || $user->isOwnerOfSomiti($somitiId);
+    }
+
+    public function view(User $user, Fdr $fdr): bool
+    {
+        return $user->isMemberOfSomiti($fdr->somiti_id) || $user->isManagerOfSomiti($fdr->somiti_id) || $user->isOwnerOfSomiti($fdr->somiti_id);
     }
 
     public function approve(User $user, Fdr $fdr): bool

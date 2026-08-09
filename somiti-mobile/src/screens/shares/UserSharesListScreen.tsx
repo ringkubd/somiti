@@ -18,7 +18,8 @@ export default function UserSharesListScreen({ navigation }: any) {
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                     <ListItem title={`${item.somiti?.name || ''} — ${item.share_count} shares`}
-                        subtitle={item.user?.name} right={<StatusBadge status={item.status} />} />
+                        subtitle={item.user?.name} right={<StatusBadge status={item.status} />}
+                        onPress={() => navigation.navigate('UserShareDetail', { id: item.id })} />
                 )}
                 ListEmptyComponent={<EmptyState message="No shares allocated" action="Assign Shares" onAction={() => navigation.navigate('UserShareCreate')} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />

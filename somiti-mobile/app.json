@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "somiti-mobile",
+    "name": "FNFSomiti",
     "slug": "somiti-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,11 +10,11 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f8fafc"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ringkubd.somitimobile"
+      "bundleIdentifier": "com.ringkubd.fnfsomiti"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,14 +22,25 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.ringkubd.somitimobile"
+      "package": "com.ringkubd.fnfsomiti",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "somiti-mobile"
+      }
+    }
   }
 }

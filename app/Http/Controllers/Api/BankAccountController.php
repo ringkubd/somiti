@@ -33,6 +33,10 @@ class BankAccountController extends Controller
             'opening_balance' => 'nullable|numeric|min:0',
         ]);
 
+        if (! (Auth::user()->isManagerOfSomiti($validated['somiti_id']) || Auth::user()->isOwnerOfSomiti($validated['somiti_id']))) {
+            abort(403);
+        }
+
         $validated['current_balance'] = $validated['opening_balance'] ?? 0;
 
         $account = BankAccount::create($validated);

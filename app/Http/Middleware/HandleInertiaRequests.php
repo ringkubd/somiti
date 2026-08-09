@@ -45,6 +45,13 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
+            'pending_approvals_count' => $request->user()
+                ? $request->user()->approvals()->where('status', 'pending')->count()
+                : 0,
             'selected_somiti_id' => session('selected_somiti_id'),
             'is_somiti_admin' => session('is_somiti_admin', false),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

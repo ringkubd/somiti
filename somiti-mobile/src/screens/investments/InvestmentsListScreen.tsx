@@ -19,7 +19,8 @@ export default function InvestmentsListScreen({ navigation }: any) {
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                     <ListItem title={`${item.somiti?.name || ''} — $${parseFloat(item.amount).toLocaleString()}`}
-                        subtitle={item.type} right={<StatusBadge status={item.status} />} />
+                        subtitle={item.type} right={<StatusBadge status={item.status} />}
+                        onPress={() => navigation.navigate('InvestmentDetail', { id: item.id })} />
                 )}
                 ListEmptyComponent={<EmptyState message="No investments" action="New Investment" onAction={() => navigation.navigate('InvestmentCreate')} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />

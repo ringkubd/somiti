@@ -63,7 +63,18 @@ class SomitiController extends Controller
 
     public function members(Somiti $somiti)
     {
-        return response()->json($somiti->users()->select('users.id', 'users.name', 'users.email')->get());
+        if (! Auth::user()->isMemberOfSomiti($somiti->id)
+            && ! Auth::user()->isManagerOfSomiti($somiti->id)
+            && ! Auth::user()->isOwnerOfSomiti($somiti->id)) {
+            abort(403);
+        }
+
+        return response()->json(
+            $somiti->users()
+                ->select('users.id', 'users.name', 'users.email', 'users.phone', 'somiti_members.role', 'somiti_members.is_active', 'somiti_members.joined_at')
+                ->orderBy('somiti_members.joined_at', 'desc')
+                ->get()
+        );
     }
 
     public function settings(Somiti $somiti)

@@ -9,6 +9,27 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    /**
+     * Search users by name, phone, or email (managers/owners use this to add members).
+     */
+    public function search(Request $request)
+    {
+        $request->validate(['q' => 'required|string|min:1']);
+
+        $q = trim($request->input('q'));
+
+        $users = User::where(function ($query) use ($q) {
+            $query->where('name', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%");
+        })
+            ->select('id', 'name', 'phone', 'email')
+            ->limit(20)
+            ->get();
+
+        return response()->json($users);
+    }
+
     public function show(User $user)
     {
         if (! Auth::user()->can('view', $user)) {

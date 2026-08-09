@@ -1,4 +1,4 @@
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,11 @@ import {
     PieChart,
     Settings,
     ShieldCheck,
+    HandCoins,
+    CircleDollarSign,
+    PiggyBank,
+    AlertTriangle,
+    FileText,
     TrendingUp,
     ReceiptText,
     CalendarDays,
@@ -69,6 +74,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ somitis, selected_somiti, is_admin, stats, recent_activity, advertisements }: DashboardProps) {
+    const { pending_approvals_count } = usePage<{ pending_approvals_count?: number }>().props;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '#' },
     ];
@@ -234,6 +240,24 @@ export default function Dashboard({ somitis, selected_somiti, is_admin, stats, r
                     </div>
 
                     <div className="space-y-8">
+                        {/* Pending Approvals */}
+                        {(pending_approvals_count ?? 0) > 0 && (
+                            <Link href="/approvals">
+                                <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 hover:shadow-md transition-shadow">
+                                    <CardContent className="flex items-center justify-between py-5">
+                                        <div>
+                                            <p className="text-sm font-semibold text-orange-800">Pending Approvals</p>
+                                            <p className="text-xs text-orange-600 mt-0.5">Requests waiting for your decision</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-3xl font-black text-orange-600">{pending_approvals_count ?? 0}</span>
+                                            <ShieldCheck className="h-6 w-6 text-orange-500" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        )}
+
                         {/* Managers Section */}
                         <Card>
                             <CardHeader>
@@ -280,6 +304,10 @@ export default function Dashboard({ somitis, selected_somiti, is_admin, stats, r
                                     <ReceiptText className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-[10px] font-semibold">Trial Balance</p>
                                 </Link>
+                                <Link href={`/somitis/${selected_somiti.id}/reports/member-statement`} className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <FileText className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[10px] font-semibold">Statement</p>
+                                </Link>
                                 <Link href="/user-shares" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
                                     <PieChart className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-[10px] font-semibold">Shares</p>
@@ -288,13 +316,29 @@ export default function Dashboard({ somitis, selected_somiti, is_admin, stats, r
                                     <Wallet className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-[10px] font-semibold">Deposits</p>
                                 </Link>
+                                <Link href="/withdrawals" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <CircleDollarSign className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[10px] font-semibold">Withdrawals</p>
+                                </Link>
                                 <Link href="/loans" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
                                     <TrendingDown className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-[10px] font-semibold">Loans</p>
                                 </Link>
+                                <Link href="/repayments" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <HandCoins className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[10px] font-semibold">Repayments</p>
+                                </Link>
                                 <Link href="/investments" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
                                     <TrendingUp className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-[10px] font-semibold">Investments</p>
+                                </Link>
+                                <Link href={`/somitis/${selected_somiti.id}/dividends`} className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <PiggyBank className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[10px] font-semibold">Dividends</p>
+                                </Link>
+                                <Link href="/penalties" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <AlertTriangle className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[10px] font-semibold">Penalties</p>
                                 </Link>
                             </CardContent>
                         </Card>
@@ -343,4 +387,3 @@ export default function Dashboard({ somitis, selected_somiti, is_admin, stats, r
         </AppLayout>
     );
 }
-

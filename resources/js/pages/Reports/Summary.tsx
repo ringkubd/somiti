@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type BreadcrumbItem } from '@/types';
-import { Scale, ArrowLeft, Wallet, TrendingDown, PieChart, Landmark } from 'lucide-react';
+import { Scale, ArrowLeft, Wallet, TrendingDown, PieChart, Landmark, Download } from 'lucide-react';
 
 interface AccountSummary {
     code: string; name: string; type: string; balance: number;
@@ -53,6 +53,11 @@ export default function Summary({ somiti, accounts }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Link href={`/somitis/${somiti.id}/reports/summary.csv`}>
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <Download className="h-4 w-4" /> CSV
+                            </Button>
+                        </Link>
                         <Link href={`/somitis/${somiti.id}/reports/trial-balance`}>
                             <Button variant="outline" size="sm">Trial Balance</Button>
                         </Link>

@@ -40,6 +40,12 @@ class SomitiPolicy
         return $user->isOwnerOfSomiti($somiti) || $user->isManagerOfSomiti($somiti);
     }
 
+    public function declare(User $user, Somiti $somiti): bool
+    {
+        // Owner or manager can declare dividends
+        return $user->isOwnerOfSomiti($somiti) || $user->isManagerOfSomiti($somiti);
+    }
+
     public function setActiveYear(User $user, Somiti $somiti): bool
     {
         // Owner or manager

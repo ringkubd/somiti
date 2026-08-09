@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
-import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator, { navigationRef } from './src/navigation/AppNavigator';
 import LockScreen from './src/components/LockScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useLocalAuth } from './src/hooks/useLocalAuth';
+import { usePushNotifications } from './src/hooks/usePushNotifications';
 
 const theme = {
     ...MD3LightTheme,
@@ -17,6 +18,14 @@ export default function App() {
     const loadToken = useAuthStore((s) => s.loadToken);
     const token = useAuthStore((s) => s.token);
     const [appReady, setAppReady] = useState(false);
+
+    usePushNotifications((data) => {
+        if (!navigationRef.isReady()) return;
+        const { somiti_id } = data || {};
+        if (somiti_id) {
+            navigationRef.navigate('More', { screen: 'NotificationsFromMore', params: { somiti_id } });
+        }
+    });
 
     const {
         isLocked, loading: authLoading, hasPin,

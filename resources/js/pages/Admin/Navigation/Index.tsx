@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ export default function NavigationIndex({ navigations }: Props) {
     };
 
     const toggleStatus = (id: number, active: boolean) => {
-        patch(`/admin/navigation/${id}`, { data: { is_active: !active } });
+        router.patch(`/admin/navigation/${id}`, { is_active: !active });
     };
 
     return (

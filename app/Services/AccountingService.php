@@ -9,9 +9,12 @@ use App\Models\Investment;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\Loan;
+use App\Models\LoanRepayment;
+use App\Models\Penalty;
 use App\Models\Share;
 use App\Models\ShareTransfer;
 use App\Models\UserShare;
+use App\Models\Withdrawal;
 use Illuminate\Support\Facades\DB;
 
 class AccountingService
@@ -29,6 +32,7 @@ class AccountingService
             ['code' => ChartOfAccount::CODE_INVESTMENTS, 'name' => 'Investments', 'type' => ChartOfAccount::TYPE_ASSET, 'normal_balance' => ChartOfAccount::NORMAL_DEBIT],
             ['code' => ChartOfAccount::CODE_FDR_ASSET, 'name' => 'FDR Asset', 'type' => ChartOfAccount::TYPE_ASSET, 'normal_balance' => ChartOfAccount::NORMAL_DEBIT],
             ['code' => ChartOfAccount::CODE_INCOME_INTEREST, 'name' => 'Interest Income', 'type' => ChartOfAccount::TYPE_INCOME, 'normal_balance' => ChartOfAccount::NORMAL_CREDIT],
+            ['code' => ChartOfAccount::CODE_INCOME_PENALTY, 'name' => 'Penalty Income', 'type' => ChartOfAccount::TYPE_INCOME, 'normal_balance' => ChartOfAccount::NORMAL_CREDIT],
             ['code' => ChartOfAccount::CODE_EXPENSE_INTEREST, 'name' => 'Interest Expense', 'type' => ChartOfAccount::TYPE_EXPENSE, 'normal_balance' => ChartOfAccount::NORMAL_DEBIT],
         ];
 
@@ -56,6 +60,44 @@ class AccountingService
     }
 
     /**
+     * Record a withdrawal: Debit Member Savings, Credit Cash.
+     */
+    public static function recordWithdrawal(Withdrawal $withdrawal): JournalEntry
+    {
+        return DB::transaction(function () use ($withdrawal) {
+            $entry = self::createJournalEntry(
+                $withdrawal->somiti_id,
+                $withdrawal,
+                "Withdrawal approval #{$withdrawal->id}"
+            );
+
+            self::addLine($entry, ChartOfAccount::CODE_MEMBER_SAVINGS, $withdrawal->amount, 0, $withdrawal->user_id, 'Member savings withdrawn');
+            self::addLine($entry, ChartOfAccount::CODE_CASH, 0, $withdrawal->amount, null, 'Cash paid out');
+
+            return $entry;
+        });
+    }
+
+    /**
+     * Record a penalty: Debit Cash, Credit Penalty Income.
+     */
+    public static function recordPenalty(Penalty $penalty): JournalEntry
+    {
+        return DB::transaction(function () use ($penalty) {
+            $entry = self::createJournalEntry(
+                $penalty->somiti_id,
+                $penalty,
+                "Penalty approval #{$penalty->id}"
+            );
+
+            self::addLine($entry, ChartOfAccount::CODE_CASH, $penalty->amount, 0, null, 'Penalty received');
+            self::addLine($entry, ChartOfAccount::CODE_INCOME_PENALTY, 0, $penalty->amount, $penalty->user_id, 'Penalty income');
+
+            return $entry;
+        });
+    }
+
+    /**
      * Record a loan disbursement: Debit Loans Receivable, Credit Cash.
      */
     public static function recordLoanDisbursement(Loan $loan): JournalEntry
@@ -65,6 +107,29 @@ class AccountingService
 
             self::addLine($entry, ChartOfAccount::CODE_LOANS_RECEIVABLE, $loan->amount, 0, $loan->user_id, 'Loan receivable');
             self::addLine($entry, ChartOfAccount::CODE_CASH, 0, $loan->amount, null, 'Cash disbursed');
+
+            return $entry;
+        });
+    }
+
+    /**
+     * Record a loan repayment: Debit Cash, Credit Loans Receivable, Credit Interest Income.
+     */
+    public static function recordLoanRepayment(LoanRepayment $repayment): JournalEntry
+    {
+        return DB::transaction(function () use ($repayment) {
+            $entry = self::createJournalEntry(
+                $repayment->somiti_id,
+                $repayment,
+                "Loan repayment #{$repayment->id}"
+            );
+
+            self::addLine($entry, ChartOfAccount::CODE_CASH, $repayment->amount, 0, null, 'Repayment received');
+            self::addLine($entry, ChartOfAccount::CODE_LOANS_RECEIVABLE, 0, $repayment->principal_portion, $repayment->user_id, 'Principal repaid');
+
+            if ((float) $repayment->interest_portion > 0) {
+                self::addLine($entry, ChartOfAccount::CODE_INCOME_INTEREST, 0, $repayment->interest_portion, $repayment->user_id, 'Interest income');
+            }
 
             return $entry;
         });

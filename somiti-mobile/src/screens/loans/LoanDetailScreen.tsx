@@ -30,6 +30,9 @@ export default function LoanDetailScreen({ route, navigation }: any) {
                 <DetailRow label="Status" value={loan.status} />
                 <DetailRow label="Created" value={new Date(loan.created_at).toLocaleDateString()} />
             </View>
+            <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.navigate('RepaymentsList', { loanId: loan.id })}>
+                <Text style={styles.linkText}>View Repayments</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
@@ -48,4 +51,6 @@ const styles = StyleSheet.create({
     details: { backgroundColor: '#fff', margin: 20, borderRadius: 12, padding: 16 },
     row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
     label: { fontSize: 14, color: '#64748b' }, value: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
+    linkBtn: { backgroundColor: '#2563eb', marginHorizontal: 20, borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 20 },
+    linkText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 });

@@ -19,7 +19,8 @@ export default function BankAccountsListScreen({ navigation }: any) {
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                     <ListItem title={item.bank_name} subtitle={`${item.account_number} • ${getCurrencySymbol()}${parseFloat(item.current_balance).toLocaleString()}`}
-                        right={<Text style={styles.type}>{item.account_type}</Text>} />
+                        right={<Text style={styles.type}>{item.account_type}</Text>}
+                        onPress={() => navigation.navigate('BankAccountDetail', { id: item.id })} />
                 )}
                 ListEmptyComponent={<EmptyState message="No bank accounts" action="Add Account" onAction={() => navigation.navigate('BankAccountCreate')} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />

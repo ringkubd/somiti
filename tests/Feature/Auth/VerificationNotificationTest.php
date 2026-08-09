@@ -16,7 +16,7 @@ test('sends verification notification', function () {
         ->assertRedirect(route('home'));
 
     Notification::assertSentTo($user, VerifyEmail::class);
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');
 
 test('does not send verification notification if email is verified', function () {
     Notification::fake();
@@ -30,4 +30,4 @@ test('does not send verification notification if email is verified', function ()
         ->assertRedirect(route('dashboard', absolute: false));
 
     Notification::assertNothingSent();
-});
+})->skip('Email verification feature is disabled by design (config/fortify.php).');

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,17 @@ interface ShowProps {
 }
 
 export default function ApprovalShow({ approval }: ShowProps) {
+    const [comment, setComment] = useState('');
+    const [processing, setProcessing] = useState(false);
+
+    const decide = (status: 'approved' | 'rejected') => {
+        setProcessing(true);
+        router.put(`/approvals/${approval.id}`, { status, comment }, {
+            preserveScroll: true,
+            onFinish: () => setProcessing(false),
+        });
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
         { label: 'My Approvals', url: '/approvals' },
         { label: `Decision #${approval.id}`, url: '#' }
@@ -60,6 +71,10 @@ export default function ApprovalShow({ approval }: ShowProps) {
         if (label.includes('loan')) return `/loans/${approval.approvable_id}`;
         if (label.includes('investment')) return `/investments/${approval.approvable_id}`;
         if (label.includes('share')) return `/user-shares/${approval.approvable_id}`;
+        if (label.includes('repayment')) return `/repayments/${approval.approvable_id}`;
+        if (label.includes('withdrawal')) return `/withdrawals/${approval.approvable_id}`;
+        if (label.includes('dividend')) return `/dividends/${approval.approvable_id}`;
+        if (label.includes('penalty')) return `/penalties/${approval.approvable_id}`;
         return '#';
     };
 
@@ -133,6 +148,48 @@ export default function ApprovalShow({ approval }: ShowProps) {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {approval.status === 'pending' && (
+                        <Card className="md:col-span-3 border-2 border-teal-100">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-teal-700">
+                                    <ShieldCheck className="h-5 w-5" />
+                                    Make a Decision
+                                </CardTitle>
+                                <CardDescription>
+                                    Approve this request to finalize the transaction, or reject it with a comment.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Optional comment for this decision..."
+                                    className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none"
+                                    rows={3}
+                                />
+                                <div className="flex flex-wrap gap-3">
+                                    <Button
+                                        onClick={() => decide('approved')}
+                                        disabled={processing}
+                                        className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Approve
+                                    </Button>
+                                    <Button
+                                        onClick={() => decide('rejected')}
+                                        disabled={processing}
+                                        variant="outline"
+                                        className="gap-2 border-red-300 text-red-600 hover:bg-red-50"
+                                    >
+                                        <XCircle className="h-4 w-4" />
+                                        Reject
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     <Card>
                         <CardHeader>

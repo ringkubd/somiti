@@ -17,6 +17,7 @@ interface UserShare {
         name: string;
     };
     user: {
+        id: number;
         name: string;
     };
     financial_year: {

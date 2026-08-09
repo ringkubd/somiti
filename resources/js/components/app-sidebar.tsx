@@ -34,7 +34,11 @@ import {
     Coins,
     Scale,
     Banknote,
-    MessageCircle
+    MessageCircle,
+    CircleDollarSign,
+    HandCoins,
+    PiggyBank,
+    AlertTriangle
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -55,9 +59,19 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
     },
     {
+        title: 'Withdrawals',
+        href: '/withdrawals',
+        icon: CircleDollarSign,
+    },
+    {
         title: 'Loans',
         href: '/loans',
         icon: TrendingDown,
+    },
+    {
+        title: 'Loan Repayments',
+        href: '/repayments',
+        icon: HandCoins,
     },
     {
         title: 'Investments',
@@ -88,6 +102,11 @@ const mainNavItems: NavItem[] = [
         title: 'Share Transfers',
         href: '/share-transfers',
         icon: ArrowRightLeft,
+    },
+    {
+        title: 'Penalties',
+        href: '/penalties',
+        icon: AlertTriangle,
     },
     {
         title: 'Chat',
@@ -153,8 +172,18 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth, selected_somiti_id, is_somiti_admin } = usePage().props as any;
+    const { auth, selected_somiti_id, is_somiti_admin, pending_approvals_count } = usePage().props as any;
     const isSuperAdmin = auth.user?.role === 'super_admin';
+
+    const dividendsNavItem = selected_somiti_id
+        ? [{ title: 'Dividends', href: `/somitis/${selected_somiti_id}/dividends`, icon: PiggyBank }]
+        : [];
+
+    const mainNavItemsWithBadges = [...mainNavItems, ...dividendsNavItem].map((item) =>
+        item.href === '/approvals' && pending_approvals_count > 0
+            ? { ...item, badge: pending_approvals_count }
+            : item,
+    );
 
     const managementNavItems: NavItem[] = selected_somiti_id && is_somiti_admin ? [
         {
@@ -187,7 +216,7 @@ export function AppSidebar() {
                 <div className="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Somiti Manager
                 </div>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItemsWithBadges} />
 
                 {managementNavItems.length > 0 && (
                     <>

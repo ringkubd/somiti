@@ -105,6 +105,7 @@ class LoanController extends Controller
 
         $loan->disbursed_at = now();
         $loan->status = 'disbursed';
+        $loan->outstanding_balance = (float) $loan->outstanding_balance > 0 ? $loan->outstanding_balance : $loan->amount;
         $loan->save();
 
         // Observer will create ledger entry for disbursement

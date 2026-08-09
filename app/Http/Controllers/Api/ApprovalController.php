@@ -14,7 +14,7 @@ class ApprovalController extends Controller
         $user = Auth::user();
 
         $approvals = Approval::where('status', 'pending')
-            ->whereHasMorph('approvable', ['App\\Models\\Deposit', 'App\\Models\\Loan', 'App\\Models\\Investment', 'App\\Models\\Fdr', 'App\\Models\\UserShare'], function ($q) use ($user) {
+            ->whereHasMorph('approvable', ['App\\Models\\Deposit', 'App\\Models\\Loan', 'App\\Models\\Investment', 'App\\Models\\Fdr', 'App\\Models\\UserShare', 'App\\Models\\LoanRepayment', 'App\\Models\\Withdrawal', 'App\\Models\\Penalty'], function ($q) use ($user) {
                 $q->whereHas('somiti.members', function ($q2) use ($user) {
                     $q2->where('user_id', $user->id);
                 })

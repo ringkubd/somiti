@@ -52,7 +52,7 @@ export default function SomitiChat({ somiti, messages: initialMessages, onlineUs
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
     const [attachedPreview, setAttachedPreview] = useState<string | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
-    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const msgListRef = useRef<HTMLDivElement>(null);
 
@@ -241,7 +241,7 @@ export default function SomitiChat({ somiti, messages: initialMessages, onlineUs
                                         isMe ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-gray-100 text-gray-900 rounded-bl-sm'
                                     }`}>
                                         {isImage ? (
-                                            <img src={msg.attachment_url} alt="attachment" className="max-w-full rounded-lg mb-1" />
+                                            <img src={msg.attachment_url ?? undefined} alt="attachment" className="max-w-full rounded-lg mb-1" />
                                         ) : msg.message_type === 'file' && msg.attachment_url ? (
                                             <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="underline text-sm">
                                                 📎 {msg.message.replace(/\[.*?\]/, '').trim() || 'Download file'}

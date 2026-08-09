@@ -28,6 +28,7 @@ class FdrController extends Controller
     {
         $request->validate([
             'somiti_id' => 'required|exists:somitis,id',
+            'user_id' => 'nullable|exists:users,id',
             'investment_id' => 'nullable|exists:investments,id',
             'bank_name' => 'required|string',
             'interest_rate' => 'required|numeric',
@@ -39,7 +40,10 @@ class FdrController extends Controller
             abort(403);
         }
 
-        $fdr = Fdr::create($request->only(['somiti_id', 'investment_id', 'bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']));
+        $fdr = Fdr::create(array_merge(
+            $request->only(['somiti_id', 'investment_id', 'bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']),
+            ['user_id' => $request->input('user_id') ?? Auth::id()]
+        ));
 
         return response()->json($fdr, 201);
     }

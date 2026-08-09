@@ -15,6 +15,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('loans', App\Http\Controllers\Api\LoanController::class);
     Route::post('loans/{loan}/approve', [App\Http\Controllers\Api\LoanController::class, 'approve'])->name('loans.approve');
     Route::post('loans/{loan}/disburse', [App\Http\Controllers\Api\LoanController::class, 'disburse'])->name('loans.disburse');
+    Route::get('repayments', [App\Http\Controllers\Api\LoanRepaymentController::class, 'index'])->name('repayments.index');
+    Route::get('loans/{loan}/repayments', [App\Http\Controllers\Api\LoanRepaymentController::class, 'forLoan'])->name('loans.repayments.index');
+    Route::post('loans/{loan}/repayments', [App\Http\Controllers\Api\LoanRepaymentController::class, 'store'])->name('loans.repayments.store');
+    Route::post('repayments/{repayment}/approve', [App\Http\Controllers\Api\LoanRepaymentController::class, 'approve'])->name('repayments.approve');
+    Route::post('repayments/{repayment}/reject', [App\Http\Controllers\Api\LoanRepaymentController::class, 'reject'])->name('repayments.reject');
+
+    // Withdrawals
+    Route::get('withdrawals', [App\Http\Controllers\Api\WithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('withdrawals', [App\Http\Controllers\Api\WithdrawalController::class, 'store'])->name('withdrawals.store');
+    Route::get('withdrawals/{withdrawal}', [App\Http\Controllers\Api\WithdrawalController::class, 'show'])->name('withdrawals.show');
+    Route::post('withdrawals/{withdrawal}/approve', [App\Http\Controllers\Api\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+    Route::post('withdrawals/{withdrawal}/reject', [App\Http\Controllers\Api\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+
+    // Penalties
+    Route::get('penalties', [App\Http\Controllers\Api\PenaltyController::class, 'index'])->name('penalties.index');
+    Route::post('penalties', [App\Http\Controllers\Api\PenaltyController::class, 'store'])->name('penalties.store');
+    Route::get('penalties/{penalty}', [App\Http\Controllers\Api\PenaltyController::class, 'show'])->name('penalties.show');
+    Route::post('penalties/{penalty}/approve', [App\Http\Controllers\Api\PenaltyController::class, 'approve'])->name('penalties.approve');
+    Route::post('penalties/{penalty}/reject', [App\Http\Controllers\Api\PenaltyController::class, 'reject'])->name('penalties.reject');
 
     // Investments
     Route::apiResource('investments', App\Http\Controllers\Api\InvestmentController::class);
@@ -64,6 +83,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Somiti Settings & Members
     Route::get('somitis/{somiti}/members', [App\Http\Controllers\Api\SomitiController::class, 'members'])->name('somitis.members');
+    Route::get('somitis/{somiti}/dividends', [App\Http\Controllers\Api\DividendController::class, 'index'])->name('somitis.dividends.index');
+    Route::post('somitis/{somiti}/dividends', [App\Http\Controllers\Api\DividendController::class, 'store'])->name('somitis.dividends.store');
+    Route::get('dividends/{declaration}', [App\Http\Controllers\Api\DividendController::class, 'show'])->name('dividends.show');
+    Route::post('dividends/{declaration}/approve', [App\Http\Controllers\Api\DividendController::class, 'approve'])->name('dividends.approve');
+    Route::post('dividends/{declaration}/reject', [App\Http\Controllers\Api\DividendController::class, 'reject'])->name('dividends.reject');
     Route::get('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiController::class, 'settings'])->name('somitis.settings');
     Route::put('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiSettingApiController::class, 'update'])->name('somitis.settings.update');
     Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Api\SomitiController::class, 'workflows'])->name('somitis.workflows');
@@ -88,6 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [App\Http\Controllers\Api\AuthController::class, 'me'])->name('auth.me');
         Route::put('auth/profile', [App\Http\Controllers\Api\AuthController::class, 'updateProfile'])->name('auth.profile.update');
         Route::put('auth/password', [App\Http\Controllers\Api\AuthController::class, 'updatePassword'])->name('auth.password.update');
+        Route::post('auth/push-token', [App\Http\Controllers\Api\AuthController::class, 'pushToken'])->name('auth.push-token');
 
         // Somitis
         Route::apiResource('somitis', App\Http\Controllers\Api\SomitiController::class);
@@ -104,6 +129,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('notifications/{notification}', [App\Http\Controllers\Api\NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     // Users
+    Route::get('users/search', [App\Http\Controllers\Api\UserController::class, 'search'])->name('users.search');
     Route::get('users/{user}', [App\Http\Controllers\Api\UserController::class, 'show'])->name('users.show');
     Route::put('users/{user}', [App\Http\Controllers\Api\UserController::class, 'update'])->name('users.update');
     Route::delete('users/{user}', [App\Http\Controllers\Api\UserController::class, 'destroy'])->name('users.destroy');

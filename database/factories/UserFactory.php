@@ -28,12 +28,23 @@ class UserFactory extends Factory
             'phone' => fake()->unique()->numerify('017########'),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'status' => 'active',
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => Str::random(10),
             'two_factor_recovery_codes' => Str::random(10),
             'two_factor_confirmed_at' => now(),
         ];
+    }
+
+    /**
+     * Indicate that the user account is pending approval.
+     */
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'pending',
+        ]);
     }
 
     /**

@@ -19,7 +19,8 @@ export default function FdrsListScreen({ navigation }: any) {
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                     <ListItem title={item.bank_name} subtitle={`Maturity: $${parseFloat(item.maturity_amount || '0').toLocaleString()}`}
-                        right={<StatusBadge status={item.status} />} />
+                        right={<StatusBadge status={item.status} />}
+                        onPress={() => navigation.navigate('FdrDetail', { id: item.id })} />
                 )}
                 ListEmptyComponent={<EmptyState message="No FDRs" action="New FDR" onAction={() => navigation.navigate('FdrCreate')} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />

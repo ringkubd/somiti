@@ -31,7 +31,18 @@ class DepositController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $deposit = Deposit::create(array_merge($request->only(['somiti_id', 'amount', 'method', 'notes']), ['user_id' => Auth::id(), 'status' => 'pending']));
+        if (! Auth::user()->isMemberOfSomiti($request->input('somiti_id'))) {
+            abort(403);
+        }
+
+        $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
+        $financialYear = $somiti->financialYears()->where('is_active', true)->where('is_closed', false)->latest('id')->first();
+
+        $deposit = Deposit::create(array_merge($request->only(['somiti_id', 'amount', 'method', 'notes']), [
+            'user_id' => Auth::id(),
+            'status' => 'pending',
+            'financial_year_id' => $financialYear?->id,
+        ]));
 
         return response()->json($deposit, 201);
     }

@@ -113,6 +113,11 @@ class Loan extends Model
         return $this->morphMany(Ledger::class, 'reference');
     }
 
+    public function repayments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LoanRepayment::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {

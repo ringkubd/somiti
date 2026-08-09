@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
@@ -19,14 +19,19 @@ import LoanCreateScreen from '../screens/loans/LoanCreateScreen';
 import LoanDetailScreen from '../screens/loans/LoanDetailScreen';
 import InvestmentsListScreen from '../screens/investments/InvestmentsListScreen';
 import InvestmentCreateScreen from '../screens/investments/InvestmentCreateScreen';
+import InvestmentDetailScreen from '../screens/investments/InvestmentDetailScreen';
 import FdrsListScreen from '../screens/fdrs/FdrsListScreen';
 import FdrCreateScreen from '../screens/fdrs/FdrCreateScreen';
+import FdrDetailScreen from '../screens/fdrs/FdrDetailScreen';
 import BankAccountsListScreen from '../screens/bank-accounts/BankAccountsListScreen';
 import BankAccountCreateScreen from '../screens/bank-accounts/BankAccountCreateScreen';
+import BankAccountDetailScreen from '../screens/bank-accounts/BankAccountDetailScreen';
 import UserSharesListScreen from '../screens/shares/UserSharesListScreen';
 import UserShareCreateScreen from '../screens/shares/UserShareCreateScreen';
+import UserShareDetailScreen from '../screens/shares/UserShareDetailScreen';
 import ShareTransfersListScreen from '../screens/transfers/ShareTransfersListScreen';
 import ShareTransferCreateScreen from '../screens/transfers/ShareTransferCreateScreen';
+import ShareTransferDetailScreen from '../screens/transfers/ShareTransferDetailScreen';
 import ApprovalsListScreen from '../screens/approvals/ApprovalsListScreen';
 import ProfileScreen from '../screens/settings/ProfileScreen';
 import ChangePasswordScreen from '../screens/settings/ChangePasswordScreen';
@@ -39,6 +44,18 @@ import FinancialYearsListScreen from '../screens/settings/FinancialYearsListScre
 import CreateSomitiScreen from '../screens/settings/CreateSomitiScreen';
 import JoinSomitiScreen from '../screens/settings/JoinSomitiScreen';
 import ChatScreen from '../screens/chat/ChatScreen';
+import MembersListScreen from '../screens/members/MembersListScreen';
+import MemberAddScreen from '../screens/members/MemberAddScreen';
+import RepaymentsListScreen from '../screens/repayments/RepaymentsListScreen';
+import RepaymentCreateScreen from '../screens/repayments/RepaymentCreateScreen';
+import WithdrawalsListScreen from '../screens/withdrawals/WithdrawalsListScreen';
+import WithdrawalCreateScreen from '../screens/withdrawals/WithdrawalCreateScreen';
+import PenaltiesListScreen from '../screens/penalties/PenaltiesListScreen';
+import PenaltyCreateScreen from '../screens/penalties/PenaltyCreateScreen';
+import DividendsListScreen from '../screens/dividends/DividendsListScreen';
+import DividendCreateScreen from '../screens/dividends/DividendCreateScreen';
+import DividendDetailScreen from '../screens/dividends/DividendDetailScreen';
+import DepositReceiptScreen from '../screens/receipts/DepositReceiptScreen';
 
 // Common layout wrapper
 import ScreenLayout from '../components/ScreenLayout';
@@ -50,6 +67,8 @@ function withLayout(Component: React.ComponentType<any>) {
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+export const navigationRef = createNavigationContainerRef<any>();
 
 let unreadCount = 0;
 let listeners: (() => void)[] = [];
@@ -99,14 +118,31 @@ function TransactionsStack() {
             <Stack.Screen name="LoanDetail" component={withLayout(LoanDetailScreen)} />
             <Stack.Screen name="InvestmentsList" component={withLayout(InvestmentsListScreen)} />
             <Stack.Screen name="InvestmentCreate" component={withLayout(InvestmentCreateScreen)} />
+            <Stack.Screen name="InvestmentDetail" component={withLayout(InvestmentDetailScreen)} />
             <Stack.Screen name="FdrsList" component={withLayout(FdrsListScreen)} />
             <Stack.Screen name="FdrCreate" component={withLayout(FdrCreateScreen)} />
+            <Stack.Screen name="FdrDetail" component={withLayout(FdrDetailScreen)} />
             <Stack.Screen name="BankAccountsList" component={withLayout(BankAccountsListScreen)} />
             <Stack.Screen name="BankAccountCreate" component={withLayout(BankAccountCreateScreen)} />
+            <Stack.Screen name="BankAccountDetail" component={withLayout(BankAccountDetailScreen)} />
             <Stack.Screen name="UserSharesList" component={withLayout(UserSharesListScreen)} />
             <Stack.Screen name="UserShareCreate" component={withLayout(UserShareCreateScreen)} />
+            <Stack.Screen name="UserShareDetail" component={withLayout(UserShareDetailScreen)} />
             <Stack.Screen name="ShareTransfersList" component={withLayout(ShareTransfersListScreen)} />
             <Stack.Screen name="ShareTransferCreate" component={withLayout(ShareTransferCreateScreen)} />
+            <Stack.Screen name="ShareTransferDetail" component={withLayout(ShareTransferDetailScreen)} />
+            <Stack.Screen name="MembersList" component={withLayout(MembersListScreen)} />
+            <Stack.Screen name="MemberAdd" component={withLayout(MemberAddScreen)} />
+            <Stack.Screen name="RepaymentsList" component={withLayout(RepaymentsListScreen)} />
+            <Stack.Screen name="RepaymentCreate" component={withLayout(RepaymentCreateScreen)} />
+            <Stack.Screen name="WithdrawalsList" component={withLayout(WithdrawalsListScreen)} />
+            <Stack.Screen name="WithdrawalCreate" component={withLayout(WithdrawalCreateScreen)} />
+            <Stack.Screen name="PenaltiesList" component={withLayout(PenaltiesListScreen)} />
+            <Stack.Screen name="PenaltyCreate" component={withLayout(PenaltyCreateScreen)} />
+            <Stack.Screen name="DividendsList" component={withLayout(DividendsListScreen)} />
+            <Stack.Screen name="DividendCreate" component={withLayout(DividendCreateScreen)} />
+            <Stack.Screen name="DividendDetail" component={withLayout(DividendDetailScreen)} />
+            <Stack.Screen name="DepositReceipt" component={withLayout(DepositReceiptScreen)} />
         </Stack.Navigator>
     );
 }
@@ -121,7 +157,6 @@ function MoreStack() {
             <Stack.Screen name="FinancialYearsList" component={withLayout(FinancialYearsListScreen)} />
             <Stack.Screen name="ProfileFromMore" component={withLayout(ProfileScreen)} />
             <Stack.Screen name="ChangePasswordFromMore" component={withLayout(ChangePasswordScreen)} />
-            <Stack.Screen name="ChangesPasswordFromMore" component={withLayout(ChangePasswordScreen)} />
             <Stack.Screen name="NotificationsFromMore" component={withLayout(NotificationsListScreen)} />
             <Stack.Screen name="CreateSomitiFromDash" component={withLayout(CreateSomitiScreen)} />
             <Stack.Screen name="JoinSomitiFromDash" component={withLayout(JoinSomitiScreen)} />
@@ -200,7 +235,7 @@ export default function AppNavigator() {
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             {token ? <AppTabs /> : <AuthStack />}
         </NavigationContainer>
     );

@@ -27,6 +27,10 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\Notification::class => \App\Policies\NotificationPolicy::class,
         \App\Models\User::class => \App\Policies\UserPolicy::class,
         \App\Models\ShareTransfer::class => \App\Policies\ShareTransferPolicy::class,
+        \App\Models\LoanRepayment::class => \App\Policies\LoanRepaymentPolicy::class,
+        \App\Models\DividendDeclaration::class => \App\Policies\DividendDeclarationPolicy::class,
+        \App\Models\Withdrawal::class => \App\Policies\WithdrawalPolicy::class,
+        \App\Models\Penalty::class => \App\Policies\PenaltyPolicy::class,
     ];
 
     public function boot()

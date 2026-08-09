@@ -42,6 +42,36 @@ class SomitiMembershipController extends Controller
         return redirect()->route('somitis.show', $somiti)->with('success', 'Member added successfully.');
     }
 
+    public function update(Request $request, Somiti $somiti, User $user)
+    {
+        if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) {
+            abort(403);
+        }
+
+        $request->validate([
+            'role' => 'required|in:member,manager,owner',
+        ]);
+
+        $member = $somiti->members()->where('user_id', $user->id)->where('is_active', true)->first();
+
+        if (! $member) {
+            return redirect()->route('somitis.show', $somiti)->with('error', 'Member not found.');
+        }
+
+        // Keep at least one active owner per society
+        if ($member->role === 'owner' && $request->input('role') !== 'owner') {
+            $activeOwners = $somiti->members()->where('role', 'owner')->where('is_active', true)->where('id', '!=', $member->id)->count();
+            if ($activeOwners === 0) {
+                return redirect()->route('somitis.show', $somiti)->with('error', 'At least one owner is required.');
+            }
+        }
+
+        $member->role = $request->input('role');
+        $member->save();
+
+        return redirect()->route('somitis.show', $somiti)->with('success', 'Member role updated.');
+    }
+
     public function destroy(Somiti $somiti, User $user)
     {
         if (! (Auth::user()->isManagerOfSomiti($somiti->id) || Auth::user()->isOwnerOfSomiti($somiti->id))) {

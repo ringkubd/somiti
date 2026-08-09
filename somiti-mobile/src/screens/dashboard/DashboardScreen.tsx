@@ -14,6 +14,11 @@ const quickActions = [
     { label: 'Shares', screen: 'UserSharesList', icon: '📊' },
     { label: 'Transfers', screen: 'ShareTransfersList', icon: '🔄' },
     { label: 'Approvals', screen: 'ApprovalsList', icon: '✅' },
+    { label: 'Members', screen: 'MembersList', icon: '👥' },
+    { label: 'Repayments', screen: 'RepaymentsList', icon: '💳' },
+    { label: 'Withdrawals', screen: 'WithdrawalsList', icon: '🏧' },
+    { label: 'Penalties', screen: 'PenaltiesList', icon: '⚠️' },
+    { label: 'Dividends', screen: 'DividendsList', icon: '🎉' },
 ];
 
 export default function DashboardScreen({ navigation }: any) {

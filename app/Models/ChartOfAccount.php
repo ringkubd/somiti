@@ -56,6 +56,8 @@ class ChartOfAccount extends Model
 
     public const CODE_INCOME_INTEREST = '4001';
 
+    public const CODE_INCOME_PENALTY = '4002';
+
     public const CODE_EXPENSE_INTEREST = '5001';
 
     public function somiti(): BelongsTo

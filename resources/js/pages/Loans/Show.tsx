@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, CheckCircle, XCircle, Clock, User, Building, Landmark, Percent, CalendarClock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, User, Building, Landmark, Percent, CalendarClock, HandCoins } from 'lucide-react';
 
 interface Approval {
     id: number;
@@ -81,6 +81,12 @@ export default function LoanShow({ loan }: ShowProps) {
                     <Badge className={`ml-auto px-3 py-1 capitalize text-sm ${getStatusBadgeClass(loan.status)}`}>
                         {loan.status}
                     </Badge>
+                    <Link href={`/loans/${loan.id}/repayments`}>
+                        <Button variant="outline" size="sm" className="gap-2 border-teal-300 text-teal-700 hover:bg-teal-50">
+                            <HandCoins className="h-4 w-4" />
+                            Repayments
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

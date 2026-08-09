@@ -35,6 +35,10 @@ class ShareTransferController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
+        if (! (Auth::user()->isMemberOfSomiti($validated['somiti_id']) || Auth::user()->isManagerOfSomiti($validated['somiti_id']) || Auth::user()->isOwnerOfSomiti($validated['somiti_id']))) {
+            abort(403);
+        }
+
         $senderBalance = ShareService::getBalance(Auth::id(), $validated['somiti_id'], $validated['financial_year_id']);
         if ($senderBalance < $validated['quantity']) {
             return response()->json(['message' => 'Insufficient shares.'], 422);

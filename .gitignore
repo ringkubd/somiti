@@ -26,3 +26,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.history
+/Gemini_Generated_Image_*.png
+/google-services.json
+/somiti-mobile/fnfsomiti-firebase-adminsdk-fbsvc-1dd3678f6f.json

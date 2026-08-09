@@ -14,6 +14,7 @@ class Fdr extends Model
 
     protected $fillable = [
         'somiti_id',
+        'user_id',
         'investment_id',
         'bank_name',
         'interest_rate',

@@ -21,7 +21,8 @@ export default function ShareTransfersListScreen({ navigation }: any) {
                     <ListItem
                         title={`${item.from_user?.name || 'Treasury'} → ${item.to_user?.name}`}
                         subtitle={`${item.somiti?.name} • ${item.quantity} shares @ $${parseFloat(item.price_per_share).toLocaleString()}`}
-                        right={<StatusBadge status={item.status} />} />
+                        right={<StatusBadge status={item.status} />}
+                        onPress={() => navigation.navigate('ShareTransferDetail', { id: item.id })} />
                 )}
                 ListEmptyComponent={<EmptyState message="No transfers" action="New Transfer" onAction={() => navigation.navigate('ShareTransferCreate')} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />

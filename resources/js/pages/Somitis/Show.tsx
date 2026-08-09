@@ -1,21 +1,27 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BreadcrumbItem } from '@/types';
-import { Users, UserCog, Settings, ArrowLeft, Plus, Wallet, TrendingUp, TrendingDown, PieChart, Scale, ReceiptText, CalendarDays, ShieldCheck, Banknote, MessageCircle } from 'lucide-react';
+import { Users, UserCog, Settings, ArrowLeft, Plus, Wallet, TrendingUp, TrendingDown, PieChart, Scale, ReceiptText, CalendarDays, ShieldCheck, Banknote, MessageCircle, Phone, CalendarClock, UserMinus, Save, FileText } from 'lucide-react';
 
 interface SomitiMember {
     id: number;
+    user_id: number;
     role: string;
+    is_active: boolean;
+    joined_at: string | null;
+    left_at: string | null;
     user: {
         id: number;
         name: string;
         email: string;
+        phone: string | null;
     };
 }
 
@@ -42,6 +48,10 @@ interface ShowProps {
 }
 
 export default function SomitiShow({ somiti }: ShowProps) {
+    const { is_somiti_admin } = usePage<{ is_somiti_admin?: boolean }>().props;
+    const canManage = Boolean(is_somiti_admin);
+    const [editingRole, setEditingRole] = useState<Record<number, string>>({});
+
     const breadcrumbs: BreadcrumbItem[] = [
         { label: 'Somitis', url: '/somitis' },
         { label: somiti.name, url: '#' }
@@ -49,6 +59,23 @@ export default function SomitiShow({ somiti }: ShowProps) {
 
     const getInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    };
+
+    const saveRole = (member: SomitiMember) => {
+        const role = editingRole[member.id];
+        if (!role || role === member.role) {
+            setEditingRole((prev) => ({ ...prev, [member.id]: '' }));
+            return;
+        }
+        router.put(`/somitis/${somiti.id}/members/${member.user_id}`, { role }, {
+            preserveScroll: true,
+            onSuccess: () => setEditingRole((prev) => ({ ...prev, [member.id]: '' })),
+        });
+    };
+
+    const removeMember = (member: SomitiMember) => {
+        if (!confirm(`Remove ${member.user.name} from ${somiti.name}?`)) return;
+        router.delete(`/somitis/${somiti.id}/members/${member.user_id}`, { preserveScroll: true });
     };
 
     return (
@@ -148,7 +175,7 @@ export default function SomitiShow({ somiti }: ShowProps) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Team/Members Section */}
-                    <Card className="lg:col-span-2">
+                    <Card className="lg:col-span-2" id="members">
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl flex items-center gap-2">
@@ -164,26 +191,76 @@ export default function SomitiShow({ somiti }: ShowProps) {
                             </Link>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {somiti.members.map((member) => (
-                                    <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10">
                                                 <AvatarFallback>{getInitials(member.user.name)}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="text-sm font-semibold">{member.user.name}</p>
-                                                <p className="text-xs text-gray-500">{member.user.email}</p>
+                                                <p className="text-sm font-semibold flex items-center gap-2">
+                                                    {member.user.name}
+                                                    {!member.is_active && (
+                                                        <Badge variant="outline" className="bg-gray-100 text-gray-500 border-gray-200 text-[10px]">Inactive</Badge>
+                                                    )}
+                                                </p>
+                                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <Phone className="h-3 w-3" /> {member.user.phone || '—'}
+                                                </p>
+                                                <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                                                    <CalendarClock className="h-3 w-3" />
+                                                    Joined {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'N/A'}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <Badge variant="secondary" className="capitalize text-[10px]">
-                                                {member.role}
-                                            </Badge>
-                                            <Button variant="ghost" size="sm" className="h-8 text-xs text-red-500">Remove</Button>
+                                            {canManage && editingRole[member.id] ? (
+                                                <>
+                                                    <Select
+                                                        value={editingRole[member.id]}
+                                                        onValueChange={(value) => setEditingRole((prev) => ({ ...prev, [member.id]: value }))}
+                                                    >
+                                                        <SelectTrigger className="h-8 w-32 text-xs">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="member">Member</SelectItem>
+                                                            <SelectItem value="manager">Manager</SelectItem>
+                                                            <SelectItem value="owner">Owner</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-green-600" onClick={() => saveRole(member)}>
+                                                        <Save className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="sm" className="h-8 text-xs text-gray-500" onClick={() => setEditingRole((prev) => ({ ...prev, [member.id]: '' }))}>
+                                                        Cancel
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Badge variant="secondary" className="capitalize text-[10px]">
+                                                        {member.role}
+                                                    </Badge>
+                                                    {canManage && (
+                                                        <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => setEditingRole((prev) => ({ ...prev, [member.id]: member.role }))}>
+                                                            Edit Role
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                            {canManage && member.role !== 'owner' && (
+                                                <Button variant="ghost" size="sm" className="h-8 text-xs text-red-500" onClick={() => removeMember(member)}>
+                                                    <UserMinus className="h-3.5 w-3.5 mr-1" />
+                                                    Remove
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
+                                {somiti.members.length === 0 && (
+                                    <p className="text-center text-gray-500 italic py-8">No members yet.</p>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -205,7 +282,9 @@ export default function SomitiShow({ somiti }: ShowProps) {
                                     </div>
                                 ))}
                                 <Separator />
-                                <Button variant="outline" size="sm" className="w-full">Manage Roles</Button>
+                                <Button variant="outline" size="sm" className="w-full" onClick={() => document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' })}>
+                                    Manage Roles
+                                </Button>
                             </CardContent>
                         </Card>
 
@@ -233,6 +312,10 @@ export default function SomitiShow({ somiti }: ShowProps) {
                                 <Link href={`/somitis/${somiti.id}/reports/trial-balance`} className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
                                     <ReceiptText className="h-4 w-4 mx-auto mb-1" />
                                     <p className="text-xs font-semibold">Trial Balance</p>
+                                </Link>
+                                <Link href={`/somitis/${somiti.id}/reports/member-statement`} className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
+                                    <FileText className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-xs font-semibold">Member Statement</p>
                                 </Link>
                                 <Link href="/user-shares" className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-center">
                                     <PieChart className="h-4 w-4 mx-auto mb-1" />

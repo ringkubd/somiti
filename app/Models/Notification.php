@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\SendPushNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,8 @@ class Notification extends Model
             if ($notification->somiti_id) {
                 broadcast(new \App\Events\TransactionNotification($notification));
             }
+            // Send push notification via Expo (queued)
+            SendPushNotification::dispatch($notification);
         });
     }
 

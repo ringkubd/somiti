@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,18 +25,15 @@ interface Props {
 }
 
 export default function UsersIndex({ users }: Props) {
+    const { processing } = useForm();
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Admin', href: '/admin/dashboard' },
         { title: 'User Management', href: '#' }
     ];
 
-    const { patch, processing } = useForm();
-
     const updateStatus = (id: number, status: string, role: string) => {
-        patch(`/admin/users/${id}`, {
-            data: { status, role },
-            preserveScroll: true
-        });
+        router.patch(`/admin/users/${id}`, { status, role }, { preserveScroll: true });
     };
 
     return (
