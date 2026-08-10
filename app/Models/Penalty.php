@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class Penalty extends Model
 {
-    use \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
+    use \App\Traits\HasApprovals, \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'somiti_id',

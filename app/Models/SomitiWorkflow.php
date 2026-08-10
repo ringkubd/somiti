@@ -17,11 +17,13 @@ class SomitiWorkflow extends Model
         'requires_approval',
         'manager_can_approve_alone',
         'min_approvals_required',
+        'quorum_type',
     ];
 
     protected $casts = [
         'requires_approval' => 'boolean',
         'manager_can_approve_alone' => 'boolean',
+        'quorum_type' => 'string',
     ];
 
     public function somiti(): BelongsTo
@@ -33,7 +35,7 @@ class SomitiWorkflow extends Model
     {
         return static::firstOrCreate(
             ['somiti_id' => $somitiId, 'transaction_type' => $type],
-            ['requires_approval' => true, 'manager_can_approve_alone' => true, 'min_approvals_required' => 1]
+            ['requires_approval' => true, 'manager_can_approve_alone' => true, 'min_approvals_required' => 1, 'quorum_type' => 'count']
         );
     }
 }

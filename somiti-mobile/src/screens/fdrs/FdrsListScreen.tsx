@@ -1,39 +1,34 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
+import { ListHeader } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { colors } from '../../theme';
 
 export default function FdrsListScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const [items, setItems] = useState<any[]>([]);
-    useFocusEffect(useCallback(() => { client.get('/fdrs').then(({ data }) => setItems(data.data || [])).catch(() => { }); }, []));
+    const [refreshing, setRefreshing] = useState(false);
+    const fetch = async () => { try { const { data } = await client.get('/fdrs'); setItems(data.data || []); } catch { } };
+    useFocusEffect(useCallback(() => { fetch(); }, []));
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>FDRs</Text>
-                <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('FdrCreate')}>
-                    <Text style={styles.addBtnText}>+ New</Text>
-                </TouchableOpacity>
-            </View>
+            <ListHeader title={t('fdrs')} subtitle={t('fixedDepositReceipts')} actionLabel={t('new')} onAction={() => navigation.navigate('FdrCreate')} />
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
-                    <ListItem title={item.bank_name} subtitle={`Maturity: $${parseFloat(item.maturity_amount || '0').toLocaleString()}`}
+                    <ListItem title={item.bank_name}
+                        subtitle={`${t('maturityAmount')}: ${getCurrencySymbol()}${parseFloat(item.maturity_amount || '0').toLocaleString()}`}
                         right={<StatusBadge status={item.status} />}
                         onPress={() => navigation.navigate('FdrDetail', { id: item.id })} />
                 )}
-                ListEmptyComponent={<EmptyState message="No FDRs" action="New FDR" onAction={() => navigation.navigate('FdrCreate')} />}
+                ListEmptyComponent={<EmptyState message={t('noFdrs')} action={t('newFdr')} onAction={() => navigation.navigate('FdrCreate')} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, header: {
-        flexDirection: 'row', justifyContent: 'space-between',
-        alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
-    },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    addBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-    addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.bg } });

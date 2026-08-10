@@ -8,16 +8,25 @@ import LockScreen from './src/components/LockScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useLocalAuth } from './src/hooks/useLocalAuth';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
+import { LanguageProvider } from './src/i18n/LanguageContext';
+import mobileAds from 'react-native-google-mobile-ads';
+
+import { colors } from './src/theme';
 
 const theme = {
     ...MD3LightTheme,
-    colors: { ...MD3LightTheme.colors, primary: '#2563eb' },
+    colors: { ...MD3LightTheme.colors, primary: colors.primary },
 };
 
 export default function App() {
     const loadToken = useAuthStore((s) => s.loadToken);
     const token = useAuthStore((s) => s.token);
     const [appReady, setAppReady] = useState(false);
+
+    // Initialize AdMob once at startup (test IDs in dev).
+    useEffect(() => {
+        mobileAds().initialize().catch(() => {});
+    }, []);
 
     usePushNotifications((data) => {
         if (!navigationRef.isReady()) return;
@@ -59,8 +68,8 @@ export default function App() {
     // Show loading while checking auth
     if (!appReady || authLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-                <ActivityIndicator size="large" color="#2563eb" />
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -81,9 +90,11 @@ export default function App() {
     }
 
     return (
-        <PaperProvider theme={theme}>
-            <StatusBar style="dark" />
-            <AppNavigator />
-        </PaperProvider>
+        <LanguageProvider>
+            <PaperProvider theme={theme}>
+                <StatusBar style="dark" />
+                <AppNavigator />
+            </PaperProvider>
+        </LanguageProvider>
     );
 }

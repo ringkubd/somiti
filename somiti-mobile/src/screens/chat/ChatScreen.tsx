@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, Image, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import client from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { colors, radius, spacing, typography } from '../../theme';
 
 const EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','💀','☠️','👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝'];
 
 export default function ChatScreen({ navigation }: any) {
     const user = useAuthStore((s) => s.user);
+    const { t } = useLanguage();
     const [messages, setMessages] = useState<any[]>([]);
     const [text, setText] = useState('');
     const [somitiId, setSomitiId] = useState<number | null>(null);
@@ -35,7 +39,6 @@ export default function ChatScreen({ navigation }: any) {
         } catch {}
     };
 
-    // Poll
     useEffect(() => {
         if (!somitiId) return;
         const interval = setInterval(async () => {
@@ -79,22 +82,17 @@ export default function ChatScreen({ navigation }: any) {
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-        if (!result.canceled && result.assets[0]) {
-            setAttachedImage(result.assets[0].uri);
-        }
+        if (!result.canceled && result.assets[0]) setAttachedImage(result.assets[0].uri);
     };
 
     const send = async () => {
         const msgText = text.trim();
         if (!msgText && !attachedImage) return;
         const caption = msgText || (attachedImage ? '📷 Image' : '');
-
-        // Optimistic
         const tempId = Date.now();
         setMessages(prev => [...prev, { id: tempId, message: caption, message_type: attachedImage ? 'image' : 'text', attachment_url: attachedImage, user: { id: user?.id, name: 'You' }, created_at: new Date().toISOString() }]);
         setText('');
         setAttachedImage(null);
-
         try {
             let url = null;
             if (attachedImage) {
@@ -109,14 +107,17 @@ export default function ChatScreen({ navigation }: any) {
         } catch {}
     };
 
+    const canSend = text.trim().length > 0 || !!attachedImage;
+
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
             <View style={styles.header}>
-                <Text style={styles.title}>Chat</Text>
-                {typingUsers.length > 0 && <Text style={styles.typing}>{typingUsers.map((t: any) => t.name).join(', ')} typing...</Text>}
+                <View style={styles.headerLeft}>
+                    <Text style={styles.title}>{t('chat')}</Text>
+                    {typingUsers.length > 0 && <Text style={styles.typing}>{typingUsers.map((t: any) => t.name).join(', ')} {t('typing')}</Text>}
+                </View>
             </View>
 
-            {/* @mentions */}
             {showMentions && filteredMembers.length > 0 && (
                 <View style={styles.mentionsList}>
                     {filteredMembers.slice(0, 5).map((m: any) => (
@@ -130,11 +131,10 @@ export default function ChatScreen({ navigation }: any) {
                 </View>
             )}
 
-            {/* Image preview */}
             {attachedImage && (
                 <View style={styles.attachPreview}>
                     <Image source={{ uri: attachedImage }} style={styles.attachImg} />
-                    <TouchableOpacity onPress={() => setAttachedImage(null)} style={styles.removeAttach}><Text style={{ color: '#fff' }}>✕</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setAttachedImage(null)} style={styles.removeAttach}><Ionicons name="close" size={16} color="#fff" /></TouchableOpacity>
                 </View>
             )}
 
@@ -146,9 +146,7 @@ export default function ChatScreen({ navigation }: any) {
                     return (
                         <View style={[styles.bubble, isMe ? styles.myBubble : styles.otherBubble]}>
                             {!isMe && <Text style={styles.name}>{item.user?.name || 'Unknown'}</Text>}
-                            {isImage ? (
-                                <Image source={{ uri: item.attachment_url }} style={styles.bubbleImg} />
-                            ) : null}
+                            {isImage ? <Image source={{ uri: item.attachment_url }} style={styles.bubbleImg} /> : null}
                             {item.message && item.message !== '📷 Image' && (
                                 <Text style={[styles.msg, isMe && styles.myMsg]}>{item.message}</Text>
                             )}
@@ -158,11 +156,10 @@ export default function ChatScreen({ navigation }: any) {
                         </View>
                     );
                 }}
-                ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyText}>No messages yet</Text></View>}
-                contentContainerStyle={messages.length === 0 ? { flex: 1, justifyContent: 'center' } : { padding: 16, paddingBottom: 8 }}
+                ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyText}>{t('noMessages')}</Text></View>}
+                contentContainerStyle={messages.length === 0 ? { flex: 1, justifyContent: 'center' } : { padding: spacing.lg, paddingBottom: spacing.sm }}
             />
 
-            {/* Emoji picker */}
             <Modal visible={showEmoji} transparent animationType="slide" onRequestClose={() => setShowEmoji(false)}>
                 <View style={styles.emojiOverlay}>
                     <View style={styles.emojiPicker}>
@@ -179,12 +176,12 @@ export default function ChatScreen({ navigation }: any) {
             </Modal>
 
             <View style={styles.inputBar}>
-                <TouchableOpacity onPress={pickImage} style={styles.iconBtn}><Text style={styles.iconText}>📎</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => setShowEmoji(true)} style={styles.iconBtn}><Text style={styles.iconText}>😊</Text></TouchableOpacity>
+                <TouchableOpacity onPress={pickImage} style={styles.iconBtn}><Ionicons name="attach-outline" size={22} color={colors.textSecondary} /></TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowEmoji(true)} style={styles.iconBtn}><Ionicons name="happy-outline" size={22} color={colors.textSecondary} /></TouchableOpacity>
                 <TextInput style={styles.input} value={text} onChangeText={handleTextChange}
-                    placeholder="Type @ to mention..." placeholderTextColor="#94a3b8" multiline />
-                <TouchableOpacity style={[styles.sendBtn, !text.trim() && !attachedImage && styles.sendBtnDisabled]} onPress={send} disabled={!text.trim() && !attachedImage}>
-                    <Text style={styles.sendText}>Send</Text>
+                    placeholder="Type @ to mention..." placeholderTextColor={colors.textMuted} multiline />
+                <TouchableOpacity style={[styles.sendBtn, !canSend && styles.sendBtnDisabled]} onPress={send} disabled={!canSend}>
+                    <Ionicons name="send" size={18} color={colors.textOnPrimary} />
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
@@ -192,37 +189,36 @@ export default function ChatScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    typing: { fontSize: 11, color: '#2563eb', fontStyle: 'italic', marginTop: 2 },
-    mentionsList: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', maxHeight: 200 },
-    mentionItem: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    mentionText: { fontSize: 15, color: '#1e293b' },
-    attachPreview: { flexDirection: 'row', padding: 8, backgroundColor: '#f1f5f9', alignItems: 'center' },
-    attachImg: { width: 60, height: 60, borderRadius: 8 },
-    removeAttach: { marginLeft: 8, backgroundColor: '#ef4444', borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center' },
-    bubble: { maxWidth: '80%', padding: 12, borderRadius: 16, marginBottom: 8 },
-    myBubble: { alignSelf: 'flex-end', backgroundColor: '#2563eb', borderBottomRightRadius: 4 },
-    otherBubble: { alignSelf: 'flex-start', backgroundColor: '#fff', borderBottomLeftRadius: 4 },
-    name: { fontSize: 11, fontWeight: '600', color: '#64748b', marginBottom: 2 },
-    msg: { fontSize: 15, color: '#1e293b', lineHeight: 20 },
-    myMsg: { color: '#fff' },
-    bubbleImg: { width: 200, height: 150, borderRadius: 8, marginBottom: 4 },
-    time: { fontSize: 10, color: '#94a3b8', marginTop: 4, alignSelf: 'flex-end' },
-    myTime: { color: '#bfdbfe' },
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+    headerLeft: { flex: 1 },
+    title: { ...typography.h2, color: colors.text },
+    typing: { fontSize: 11, color: colors.primary, fontStyle: 'italic', marginTop: 2 },
+    mentionsList: { backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border, maxHeight: 200 },
+    mentionItem: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+    mentionText: { ...typography.body, color: colors.text },
+    attachPreview: { flexDirection: 'row', padding: spacing.sm, backgroundColor: colors.surfaceAlt, alignItems: 'center' },
+    attachImg: { width: 60, height: 60, borderRadius: radius.sm },
+    removeAttach: { marginLeft: spacing.sm, backgroundColor: colors.danger, borderRadius: radius.full, width: 24, height: 24, justifyContent: 'center', alignItems: 'center' },
+    bubble: { maxWidth: '80%', padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.sm },
+    myBubble: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+    otherBubble: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderBottomLeftRadius: 4 },
+    name: { fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 2 },
+    msg: { ...typography.body, color: colors.text, lineHeight: 20 },
+    myMsg: { color: colors.textOnPrimary },
+    bubbleImg: { width: 200, height: 150, borderRadius: radius.sm, marginBottom: 4 },
+    time: { fontSize: 10, color: colors.textMuted, marginTop: 4, alignSelf: 'flex-end' },
+    myTime: { color: colors.primaryLight },
     empty: { alignItems: 'center' },
-    emptyText: { fontSize: 16, color: '#94a3b8' },
-    emojiOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
-    emojiPicker: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, maxHeight: '50%' },
-    emojiTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#1e293b' },
+    emptyText: { ...typography.body, color: colors.textMuted },
+    emojiOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.backdrop },
+    emojiPicker: { backgroundColor: colors.surface, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, maxHeight: '50%' },
+    emojiTitle: { ...typography.h3, marginBottom: spacing.md, color: colors.text },
     emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
     emojiItem: { fontSize: 28, padding: 4 },
-    inputBar: { flexDirection: 'row', padding: 8, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', alignItems: 'flex-end' },
-    iconBtn: { padding: 8 },
-    iconText: { fontSize: 20 },
-    input: { flex: 1, backgroundColor: '#f1f5f9', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, fontSize: 15, maxHeight: 80, marginHorizontal: 4 },
-    sendBtn: { backgroundColor: '#2563eb', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+    inputBar: { flexDirection: 'row', padding: spacing.sm, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border, alignItems: 'flex-end' },
+    iconBtn: { padding: spacing.sm },
+    input: { flex: 1, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, fontSize: 15, maxHeight: 80, marginHorizontal: 4 },
+    sendBtn: { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, justifyContent: 'center' },
     sendBtnDisabled: { opacity: 0.4 },
-    sendText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 });

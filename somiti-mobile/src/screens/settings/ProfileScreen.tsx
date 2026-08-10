@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Switch, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Switch, StyleSheet, Alert, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import client from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import { useLocalAuth } from '../../hooks/useLocalAuth';
+import { FormScreen, AppInput, AppButton } from '../../components/ui';
+import { colors, radius, spacing, typography } from '../../theme';
+import { LANGUAGES } from '../../i18n/translations';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function ProfileScreen({ navigation }: any) {
     const user = useAuthStore((s) => s.user);
@@ -14,6 +19,7 @@ export default function ProfileScreen({ navigation }: any) {
     const [bioEnabled, setBioEnabled] = useState(false);
 
     const { hasPin, biometricType, enableBiometric, disableBiometric } = useLocalAuth();
+    const { language, setLanguage } = useLanguage();
 
     useEffect(() => {
         (async () => {
@@ -44,54 +50,69 @@ export default function ProfileScreen({ navigation }: any) {
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <Text style={styles.title}>Profile</Text>
-            <View style={styles.avatar}><Text style={styles.avatarText}>{user?.name?.charAt(0)?.toUpperCase() || '?'}</Text></View>
-            <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
-            <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-            <TextInput style={styles.input} placeholder="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-            <TouchableOpacity style={styles.btn} onPress={update} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Save</Text>}
-            </TouchableOpacity>
+        <FormScreen title="Profile" subtitle="Your account details" onBack={() => navigation.goBack()} submitLabel="Save Changes" onSubmit={update} submitting={loading}>
+            <View style={styles.avatarWrap}>
+                <View style={styles.avatar}><Text style={styles.avatarText}>{user?.name?.charAt(0)?.toUpperCase() || '?'}</Text></View>
+            </View>
+            <AppInput label="Name" placeholder="Your name" value={name} onChangeText={setName} leftIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />} />
+            <AppInput label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />} />
+            <AppInput label="Phone" placeholder="Your phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={20} color={colors.textMuted} />} />
 
-            <Text style={styles.sectionTitle}>Security</Text>
-
-            {biometricType && (
-                <View style={styles.switchRow}>
-                    <Text style={styles.switchLabel}>{biometricType === 'fingerprint' ? 'Fingerprint' : 'Face ID'} Lock</Text>
-                    <Switch value={bioEnabled} onValueChange={toggleBio} trackColor={{ true: '#2563eb' }} />
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Language</Text>
+                <View style={styles.langWrap}>
+                    {LANGUAGES.map((l) => {
+                        const active = language === l.code;
+                        return (
+                            <TouchableOpacity
+                                key={l.code}
+                                style={[styles.langChip, active && styles.langChipActive]}
+                                onPress={() => setLanguage(l.code)}
+                            >
+                                <Text style={[styles.langText, active && styles.langTextActive]}>{l.label}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
-            )}
+            </View>
 
-            {hasPin && (
-                <TouchableOpacity style={styles.linkBtn} onPress={() => Alert.alert('Change PIN', 'Feature coming')}>
-                    <Text style={styles.linkText}>Change PIN</Text>
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Security</Text>
+                {biometricType && (
+                    <View style={styles.switchRow}>
+                        <Text style={styles.switchLabel}>{biometricType === 'fingerprint' ? 'Fingerprint' : 'Face ID'} Lock</Text>
+                        <Switch value={bioEnabled} onValueChange={toggleBio} trackColor={{ true: colors.primary }} />
+                    </View>
+                )}
+                {hasPin && (
+                    <TouchableOpacity style={styles.linkBtn} onPress={() => Alert.alert('Change PIN', 'Feature coming')}>
+                        <Text style={styles.linkText}>Change PIN</Text>
+                    </TouchableOpacity>
+                )}
+                <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.navigate('ChangePassword')}>
+                    <Text style={styles.linkText}>Change Password</Text>
                 </TouchableOpacity>
-            )}
-
-            <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.navigate('ChangePassword')}>
-                <Text style={styles.linkText}>Change Password</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.linkBtn, { marginTop: 8 }]} onPress={() => logout()}>
-                <Text style={[styles.linkText, { color: '#ef4444' }]}>Logout</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                <TouchableOpacity style={styles.linkBtn} onPress={() => logout()}>
+                    <Text style={[styles.linkText, { color: colors.danger }]}>Logout</Text>
+                </TouchableOpacity>
+            </View>
+        </FormScreen>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, content: { padding: 20, alignItems: 'center' },
-    back: { fontSize: 16, color: '#2563eb', alignSelf: 'flex-start', marginBottom: 16 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', alignSelf: 'flex-start', marginBottom: 24 },
-    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-    avatarText: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
-    input: { width: '100%', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16 },
-    btn: { width: '100%', backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
-    btnText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-    linkBtn: { width: '100%', padding: 12, alignItems: 'center' },
-    linkText: { fontSize: 16, color: '#2563eb', fontWeight: '500' },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', alignSelf: 'flex-start', width: '100%', marginTop: 24, marginBottom: 12 },
-    switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    switchLabel: { fontSize: 16, color: '#1e293b' },
+    avatarWrap: { alignItems: 'center', marginBottom: spacing.xl },
+    avatar: { width: 80, height: 80, borderRadius: radius.full, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
+    avatarText: { color: colors.textOnPrimary, fontSize: 32, fontWeight: '700' },
+    section: { marginTop: spacing.lg },
+    sectionTitle: { ...typography.label, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm },
+    switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+    switchLabel: { ...typography.body, color: colors.text },
+    langWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    langChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
+    langChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    langText: { ...typography.bodySmall, color: colors.textSecondary },
+    langTextActive: { color: colors.textOnPrimary, fontWeight: '600' },
+    linkBtn: { paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+    linkText: { ...typography.bodyMedium, color: colors.primary },
 });

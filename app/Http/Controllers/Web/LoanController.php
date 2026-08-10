@@ -62,7 +62,7 @@ class LoanController extends Controller
             'user_id' => auth()->id(),
             'amount' => $request->amount,
             'interest_rate' => $request->interest_rate,
-            'duration_months' => $request->duration_months,
+            'term_months' => $request->duration_months,
             'purpose' => $request->purpose,
             'status' => 'pending',
         ]);

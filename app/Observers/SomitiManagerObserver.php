@@ -22,6 +22,9 @@ class SomitiManagerObserver
                 $current->to_date = Carbon::now()->format('Y-m-d');
             }
             $current->save();
+
+            // Revert previous manager's member role if they no longer hold an active tenure
+            \App\Services\ManagerService::revertRoleIfNoActiveTenure($current->somiti_id, $current->user_id);
         }
     }
 }

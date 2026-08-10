@@ -27,7 +27,7 @@ interface Loan {
     amount: string | number;
     interest_rate: string | number;
     interest_type: string;
-    duration_months: number;
+    term_months: number;
     outstanding_balance: string | number;
     status: string;
     created_at: string;

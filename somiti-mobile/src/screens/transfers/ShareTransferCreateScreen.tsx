@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Alert, View } from 'react-native';
 import client from '../../api/client';
 import { useSomiti } from '../../hooks/useSomiti';
 import { SelectField } from '../../components/SelectField';
+import { FormScreen, AppInput } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { spacing } from '../../theme';
 
 export default function ShareTransferCreateScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const { somitiId } = useSomiti();
     const [fyId, setFyId] = useState(''); const [toUserId, setToUserId] = useState('');
     const [quantity, setQuantity] = useState('1'); const [price, setPrice] = useState('');
@@ -23,38 +27,25 @@ export default function ShareTransferCreateScreen({ navigation }: any) {
     }, [somitiId]);
 
     const submit = async () => {
-        if (!toUserId || !price) { Alert.alert('Error', 'Fill required fields'); return; }
+        if (!toUserId || !price) { Alert.alert(t('error'), t('fillRequiredFields')); return; }
         setSubmitting(true);
         try {
             await client.post('/share-transfers', { somiti_id: somitiId, financial_year_id: parseInt(fyId) || undefined, to_user_id: parseInt(toUserId), quantity: parseInt(quantity), price_per_share: parseFloat(price), transfer_date: new Date().toISOString().split('T')[0] });
-            Alert.alert('Success', 'Transfer requested'); navigation.goBack();
-        } catch (err: any) { Alert.alert('Error', err.response?.data?.message || 'Failed'); }
+            Alert.alert(t('done'), t('transferRequested')); navigation.goBack();
+        } catch (err: any) { Alert.alert(t('error'), err.response?.data?.message || 'Failed'); }
         finally { setSubmitting(false); }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <Text style={styles.title}>Transfer Shares</Text>
-
-            <SelectField label="Recipient" value={toUserId} options={members} onSelect={setToUserId} placeholder="Select member" />
-            <SelectField label="Financial Year" value={fyId} options={fys} onSelect={setFyId} placeholder="Select FY" />
-
+        <FormScreen title={t('transferShares')} subtitle={t('transferSharesToMember')} onBack={() => navigation.goBack()} submitLabel={t('submitTransfer')} onSubmit={submit} submitting={submitting}>
+            <SelectField label={t('recipient')} value={toUserId} options={members} onSelect={setToUserId} placeholder={t('selectMember')} />
+            <SelectField label={t('financialYear')} value={fyId} options={fys} onSelect={setFyId} placeholder={t('selectFy')} />
             <View style={styles.row}>
-                <TextInput style={[styles.input, { flex: 1 }]} placeholder="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
-                <TextInput style={[styles.input, { flex: 1 }]} placeholder="Price/Share" value={price} onChangeText={setPrice} keyboardType="decimal-pad" />
+                <View style={styles.flex}><AppInput label={t('quantity')} placeholder="1" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" /></View>
+                <View style={styles.flex}><AppInput label={t('pricePerShare')} placeholder="0.00" value={price} onChangeText={setPrice} keyboardType="decimal-pad" /></View>
             </View>
-            <TouchableOpacity style={styles.submitBtn} onPress={submit} disabled={submitting}>
-                {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit Transfer</Text>}
-            </TouchableOpacity>
-        </ScrollView>
+        </FormScreen>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, content: { padding: 20, paddingTop: 60 },
-    back: { fontSize: 16, color: '#2563eb', marginBottom: 16 }, title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', marginBottom: 24 },
-    input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16 },
-    row: { flexDirection: 'row', gap: 12 }, submitBtn: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
-    submitText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-});
+const styles = StyleSheet.create({ row: { flexDirection: 'row', gap: spacing.md }, flex: { flex: 1 } });

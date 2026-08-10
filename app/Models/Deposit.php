@@ -18,6 +18,7 @@ class Deposit extends Model
         'financial_year_id',
         'user_id',
         'month',
+        'due_month',
         'amount',
         'type',
         'status',
@@ -72,6 +73,7 @@ class Deposit extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'approved_at' => 'datetime',
+        'due_month' => 'date',
     ];
 
     public function somiti(): BelongsTo

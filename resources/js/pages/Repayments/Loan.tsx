@@ -26,7 +26,7 @@ interface Props {
         outstanding_balance: string | number;
         interest_rate: string | number;
         interest_type: string;
-        duration_months: number;
+        term_months: number;
         status: string;
         somiti: { id: number; name: string };
         user: { name: string };
@@ -93,7 +93,7 @@ export default function LoanRepayments({ loan, repayments, can_decide, can_creat
                     </CardContent></Card>
                     <Card><CardContent className="pt-6">
                         <p className="text-xs font-medium text-gray-500 uppercase">Terms</p>
-                        <p className="text-2xl font-bold mt-1">{loan.interest_rate}% · {loan.duration_months} mo</p>
+                        <p className="text-2xl font-bold mt-1">{loan.interest_rate}% · {loan.term_months} mo</p>
                     </CardContent></Card>
                 </div>
 

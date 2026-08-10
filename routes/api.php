@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Approvals
     Route::get('approvals', [App\Http\Controllers\Api\ApprovalController::class, 'index'])->name('approvals.index');
+    Route::post('approvals/vote', [App\Http\Controllers\Api\ApprovalController::class, 'vote'])->name('approvals.vote');
     Route::post('approvals/{approval}/decide', [App\Http\Controllers\Api\ApprovalController::class, 'decide'])->name('approvals.decide');
 
     // Ledgers
@@ -72,6 +73,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/trial-balance', [App\Http\Controllers\Api\LedgerController::class, 'trialBalance'])->name('reports.trial-balance');
     Route::get('reports/verify', [App\Http\Controllers\Api\LedgerController::class, 'verifyBalancesCheck'])->name('reports.verify');
     Route::get('reports/summary', [App\Http\Controllers\Api\LedgerController::class, 'summary'])->name('reports.summary');
+    Route::get('somitis/{somiti}/reports/balance-sheet', [App\Http\Controllers\Api\ReportApiController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::get('somitis/{somiti}/reports/profit-loss', [App\Http\Controllers\Api\ReportApiController::class, 'profitLoss'])->name('reports.profit-loss');
+    Route::get('somitis/{somiti}/reports/portfolio', [App\Http\Controllers\Api\ReportApiController::class, 'portfolio'])->name('reports.portfolio');
+    Route::get('somitis/{somiti}/reports/members', [App\Http\Controllers\Api\ReportApiController::class, 'memberProfiles'])->name('reports.members');
+    Route::get('somitis/{somiti}/reports/members/{user?}', [App\Http\Controllers\Api\ReportApiController::class, 'memberProfile'])->name('reports.member-profile');
 
     // Share Transfers
     Route::apiResource('share-transfers', App\Http\Controllers\Api\ShareTransferController::class)->only(['index', 'store', 'show']);
@@ -89,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('dividends/{declaration}/approve', [App\Http\Controllers\Api\DividendController::class, 'approve'])->name('dividends.approve');
     Route::post('dividends/{declaration}/reject', [App\Http\Controllers\Api\DividendController::class, 'reject'])->name('dividends.reject');
     Route::get('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiController::class, 'settings'])->name('somitis.settings');
+    Route::get('currencies', [App\Http\Controllers\Api\SomitiController::class, 'currencies'])->name('currencies');
     Route::put('somitis/{somiti}/settings', [App\Http\Controllers\Api\SomitiSettingApiController::class, 'update'])->name('somitis.settings.update');
     Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Api\SomitiController::class, 'workflows'])->name('somitis.workflows');
     Route::put('somitis/{somiti}/workflows', [App\Http\Controllers\Api\SomitiController::class, 'updateWorkflows'])->name('somitis.workflows.update');
@@ -96,6 +103,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('somitis/{somiti}/notification-preferences', [App\Http\Controllers\Api\SomitiController::class, 'notificationPreferences'])->name('somitis.notification-preferences');
     Route::put('somitis/{somiti}/notification-preferences', [App\Http\Controllers\Api\SomitiController::class, 'updateNotificationPreferences'])->name('somitis.notification-preferences.update');
     Route::get('somitis/{somiti}/receipts/deposit/{deposit}', [App\Http\Controllers\Api\ReceiptApiController::class, 'deposit'])->name('api.receipts.deposit');
+
+    // Manager tenure
+    Route::get('somitis/{somiti}/managers', [App\Http\Controllers\Api\ManagerController::class, 'index'])->name('somitis.managers.index');
+    Route::post('somitis/{somiti}/managers', [App\Http\Controllers\Api\ManagerController::class, 'store'])->name('somitis.managers.store');
+    Route::delete('somitis/{somiti}/managers/{manager}', [App\Http\Controllers\Api\ManagerController::class, 'destroy'])->name('somitis.managers.destroy');
+
+    // Manager elections (majority vote)
+    Route::get('somitis/{somiti}/manager-elections', [App\Http\Controllers\Api\ManagerElectionController::class, 'index'])->name('somitis.manager-elections.index');
+    Route::post('somitis/{somiti}/manager-elections', [App\Http\Controllers\Api\ManagerElectionController::class, 'store'])->name('somitis.manager-elections.store');
+
+    // Monthly dues
+    Route::get('somitis/{somiti}/dues', [App\Http\Controllers\Api\DuesController::class, 'somitiDues'])->name('somitis.dues');
+    Route::get('somitis/{somiti}/my-dues', [App\Http\Controllers\Api\DuesController::class, 'myDues'])->name('somitis.my-dues');
+
+    // Legacy / backdated data
+    Route::post('somitis/{somiti}/members/{user}/backfill', [App\Http\Controllers\Api\LegacyDataController::class, 'backfillDeposits'])->name('somitis.members.backfill');
+    Route::post('somitis/{somiti}/loans/legacy', [App\Http\Controllers\Api\LegacyDataController::class, 'legacyLoan'])->name('somitis.loans.legacy');
 
     // Chat
     Route::get('somitis/{somiti}/messages', [App\Http\Controllers\Api\ChatController::class, 'messages'])->name('api.chat.messages');

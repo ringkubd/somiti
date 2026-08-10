@@ -67,6 +67,7 @@ class LoanRepaymentController extends Controller
 
         try {
             $repayment = LoanRepaymentService::create($loan, Auth::id(), $request->only(['amount', 'payment_date', 'method', 'notes']));
+            $repayment->requestApproval($loan->somiti->created_by_user_id, 'New loan repayment.');
         } catch (\InvalidArgumentException $e) {
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }

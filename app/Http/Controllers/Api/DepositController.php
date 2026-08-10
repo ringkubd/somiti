@@ -43,6 +43,7 @@ class DepositController extends Controller
             'status' => 'pending',
             'financial_year_id' => $financialYear?->id,
         ]));
+        $deposit->requestApproval($somiti->created_by_user_id, 'New deposit submission.');
 
         return response()->json($deposit, 201);
     }

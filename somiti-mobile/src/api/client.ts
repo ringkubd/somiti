@@ -1,9 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = __DEV__
-    ? 'http://192.168.20.231:8000/api'
-    : 'https://fnfsomiti.bdesmart.com/api';
+const API_URL = 'https://fnfsomiti.bdesmart.com/api';
 
 const client = axios.create({
     baseURL: API_URL,

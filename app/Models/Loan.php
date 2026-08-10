@@ -40,11 +40,10 @@ class Loan extends Model
             $this->approved_at = now();
             $saved = $this->save();
 
-            $this->approvals()->create([
-                'user_id' => $approverId,
-                'status' => 'approved',
-                'decided_at' => now(),
-            ]);
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                ['status' => 'approved', 'decided_at' => now()]
+            );
 
             return $saved;
         });
@@ -70,12 +69,10 @@ class Loan extends Model
             $this->approved_at = now();
             $saved = $this->save();
 
-            $this->approvals()->create([
-                'user_id' => $approverId,
-                'status' => 'rejected',
-                'comment' => $comment,
-                'decided_at' => now(),
-            ]);
+            $this->approvals()->updateOrCreate(
+                ['user_id' => $approverId],
+                ['status' => 'rejected', 'comment' => $comment, 'decided_at' => now()]
+            );
 
             return $saved;
         });

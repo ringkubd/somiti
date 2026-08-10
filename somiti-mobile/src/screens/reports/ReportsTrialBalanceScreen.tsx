@@ -1,53 +1,81 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import client from '../../api/client';
+import { ScreenHeader, ErrorState, SkeletonList, AppCard } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { colors, spacing, typography } from '../../theme';
 
 export default function ReportsTrialBalanceScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    React.useEffect(() => {
-        client.get('/reports/trial-balance').then(({ data: d }) => { setData(d); setLoading(false); }).catch(() => setLoading(false));
-    }, []);
+    const load = async () => {
+        setLoading(true); setError(false);
+        try { const { data: d } = await client.get('/reports/trial-balance'); setData(d); }
+        catch { setError(true); }
+        finally { setLoading(false); }
+    };
+    React.useEffect(() => { load(); }, []);
 
-    if (loading) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
+    const cs = getCurrencySymbol();
 
     return (
-        <ScrollView style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <Text style={styles.title}>Trial Balance</Text>
-            <View style={styles.summaryRow}>
-                <Text style={[styles.summaryText, data?.summary?.is_balanced ? { color: '#10b981' } : { color: '#ef4444' }]}>
-                    {data?.summary?.is_balanced ? '✓ Balanced' : '✗ Unbalanced'}
-                </Text>
-                <Text style={styles.summaryText}>Debit: ${data?.summary?.total_debit?.toLocaleString()}</Text>
-                <Text style={styles.summaryText}>Credit: ${data?.summary?.total_credit?.toLocaleString()}</Text>
-            </View>
-            {data?.accounts?.map((acc: any, i: number) => (
-                <View key={i} style={styles.row}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.acctName}>{acc.name}</Text>
-                        <Text style={styles.acctType}>{acc.type} • {acc.code}</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.acctBalance}>${acc.balance?.toLocaleString()}</Text>
-                        <Text style={styles.acctDetail}>D:${acc.debit} C:${acc.credit}</Text>
-                    </View>
-                </View>
-            ))}
-        </ScrollView>
+        <>
+            <ScreenHeader title={t('trialBalance')} onBack={() => navigation.goBack()} />
+            {loading ? <SkeletonList count={3} rows={2} /> : error ? <ErrorState onRetry={load} /> : (
+                <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+                    <AppCard style={styles.summaryCard}>
+                        <Text style={[styles.balance, { color: data?.summary?.is_balanced ? colors.success : colors.danger }]}>
+                            {data?.summary?.is_balanced ? `✓ ${t('balanced')}` : `✗ ${t('unbalanced')}`}
+                        </Text>
+                        <View style={styles.summaryRow}>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryLabel}>{t('totalDebit')}</Text>
+                                <Text style={styles.summaryValue}>{cs}{data?.summary?.total_debit?.toLocaleString()}</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryLabel}>{t('totalCredit')}</Text>
+                                <Text style={styles.summaryValue}>{cs}{data?.summary?.total_credit?.toLocaleString()}</Text>
+                            </View>
+                        </View>
+                    </AppCard>
+
+                    {(data?.accounts || []).map((acc: any, i: number) => (
+                        <AppCard key={i} style={styles.rowCard}>
+                            <View style={styles.rowText}>
+                                <Text style={styles.acctName}>{acc.name}</Text>
+                                <Text style={styles.acctType}>{acc.type} • {acc.code}</Text>
+                            </View>
+                            <View style={styles.rowBalance}>
+                                <Text style={styles.acctBalance}>{cs}{acc.balance?.toLocaleString()}</Text>
+                                <Text style={styles.acctDetail}>D:{cs}{acc.debit} C:{cs}{acc.credit}</Text>
+                            </View>
+                        </AppCard>
+                    ))}
+                    <View style={{ height: spacing.xxl }} />
+                </ScrollView>
+            )}
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    back: { fontSize: 16, color: '#2563eb', padding: 20, paddingBottom: 0 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', padding: 20, paddingTop: 12 },
-    summaryRow: { flexDirection: 'row', justifyContent: 'space-around', padding: 16, backgroundColor: '#fff', marginHorizontal: 20, borderRadius: 12, marginBottom: 16 },
-    summaryText: { fontSize: 14, fontWeight: '600' },
-    row: { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20, marginBottom: 8, borderRadius: 8, padding: 16 },
-    acctName: { fontSize: 15, fontWeight: '600', color: '#1e293b' },
-    acctType: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
-    acctBalance: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-    acctDetail: { fontSize: 10, color: '#94a3b8' },
+    container: { flex: 1, backgroundColor: colors.bg },
+    content: { padding: spacing.lg },
+    summaryCard: { backgroundColor: colors.primary, marginBottom: spacing.md },
+    balance: { ...typography.h2, color: colors.textOnPrimary, textAlign: 'center', marginBottom: spacing.md },
+    summaryRow: { flexDirection: 'row', gap: spacing.md },
+    summaryItem: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: spacing.md, alignItems: 'center' },
+    summaryLabel: { ...typography.caption, color: colors.primaryLight },
+    summaryValue: { ...typography.bodyMedium, color: colors.textOnPrimary, marginTop: 2 },
+    rowCard: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+    rowText: { flex: 1 },
+    acctName: { ...typography.bodyMedium, color: colors.text },
+    acctType: { ...typography.bodySmall, color: colors.textMuted, marginTop: 2 },
+    rowBalance: { alignItems: 'flex-end' },
+    acctBalance: { ...typography.bodyMedium, color: colors.text, fontWeight: '700' },
+    acctDetail: { ...typography.caption, color: colors.textMuted, fontWeight: '400' },
 });

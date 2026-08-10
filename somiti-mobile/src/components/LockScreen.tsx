@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme';
 
 interface LockScreenProps {
     onUnlock: () => void;
@@ -77,7 +78,7 @@ export default function LockScreen({ onUnlock, onSetupPin, biometricType, onBiom
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="lock-closed" size={48} color="#2563eb" />
+                <Ionicons name="lock-closed" size={48} color="colors.primary" />
                 <Text style={styles.title}>
                     {mode === 'unlock' ? 'Enter PIN' : mode === 'create' ? 'Create PIN' : 'Confirm PIN'}
                 </Text>
@@ -98,8 +99,8 @@ export default function LockScreen({ onUnlock, onSetupPin, biometricType, onBiom
             {/* Biometric button */}
             {mode === 'unlock' && biometricType && (
                 <TouchableOpacity style={styles.bioBtn} onPress={handleBiometric} disabled={loadingBio}>
-                    {loadingBio ? <ActivityIndicator color="#2563eb" /> : (
-                        <Ionicons name={biometricType === 'fingerprint' ? 'finger-print' : 'scan'} size={40} color="#2563eb" />
+                    {loadingBio ? <ActivityIndicator color="colors.primary" /> : (
+                        <Ionicons name={biometricType === 'fingerprint' ? 'finger-print' : 'scan'} size={40} color="colors.primary" />
                     )}
                     <Text style={styles.bioText}>
                         {biometricType === 'fingerprint' ? 'Touch ID' : 'Face ID'}
@@ -128,17 +129,17 @@ export default function LockScreen({ onUnlock, onSetupPin, biometricType, onBiom
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center', alignItems: 'center', padding: 24 },
+    container: { flex: 1, backgroundColor: 'colors.bg', justifyContent: 'center', alignItems: 'center', padding: 24 },
     header: { alignItems: 'center', marginBottom: 32 },
-    title: { fontSize: 22, fontWeight: 'bold', color: '#1e293b', marginTop: 16 },
-    subtitle: { fontSize: 14, color: '#94a3b8', marginTop: 4 },
+    title: { fontSize: 22, fontWeight: 'bold', color: 'colors.text', marginTop: 16 },
+    subtitle: { fontSize: 14, color: 'colors.textMuted', marginTop: 4 },
     dots: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-    dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#e2e8f0' },
-    dotFilled: { backgroundColor: '#2563eb' },
-    error: { color: '#ef4444', fontSize: 14, marginBottom: 16 },
+    dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: 'colors.border' },
+    dotFilled: { backgroundColor: 'colors.primary' },
+    error: { color: 'colors.danger', fontSize: 14, marginBottom: 16 },
     bioBtn: { alignItems: 'center', marginBottom: 24, padding: 12 },
-    bioText: { color: '#2563eb', fontSize: 14, marginTop: 4, fontWeight: '500' },
+    bioText: { color: 'colors.primary', fontSize: 14, marginTop: 4, fontWeight: '500' },
     keypad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', width: 280, gap: 8 },
     key: { width: 80, height: 60, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
-    keyText: { fontSize: 24, fontWeight: '500', color: '#1e293b' },
+    keyText: { fontSize: 24, fontWeight: '500', color: 'colors.text' },
 });

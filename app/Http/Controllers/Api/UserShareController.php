@@ -35,7 +35,9 @@ class UserShareController extends Controller
             abort(403);
         }
 
+        $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
         $share = UserShare::create(array_merge($request->only(['somiti_id', 'financial_year_id', 'share_count']), ['user_id' => Auth::id()]));
+        $share->requestApproval($somiti->created_by_user_id, 'New share allocation.');
 
         return response()->json($share, 201);
     }

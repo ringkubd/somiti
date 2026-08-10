@@ -40,10 +40,12 @@ class FdrController extends Controller
             abort(403);
         }
 
+        $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
         $fdr = Fdr::create(array_merge(
             $request->only(['somiti_id', 'investment_id', 'bank_name', 'interest_rate', 'tenure_months', 'maturity_amount']),
             ['user_id' => $request->input('user_id') ?? Auth::id()]
         ));
+        $fdr->requestApproval($somiti->created_by_user_id, 'New FDR application.');
 
         return response()->json($fdr, 201);
     }

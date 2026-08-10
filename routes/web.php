@@ -44,6 +44,8 @@ Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCrea
     // Reports
     Route::get('somitis/{somiti}/reports/trial-balance', [App\Http\Controllers\Web\ReportController::class, 'trialBalance'])->name('somitis.reports.trial-balance');
     Route::get('somitis/{somiti}/reports/summary', [App\Http\Controllers\Web\ReportController::class, 'summary'])->name('somitis.reports.summary');
+    Route::get('somitis/{somiti}/reports/balance-sheet', [App\Http\Controllers\Web\ReportController::class, 'balanceSheet'])->name('somitis.reports.balance-sheet');
+    Route::get('somitis/{somiti}/reports/portfolio', [App\Http\Controllers\Web\ReportController::class, 'portfolio'])->name('somitis.reports.portfolio');
     Route::get('somitis/{somiti}/reports/member-statement', [App\Http\Controllers\Web\ReportController::class, 'memberStatement'])->name('somitis.reports.member-statement');
     Route::get('somitis/{somiti}/reports/summary.csv', [App\Http\Controllers\Web\ReportController::class, 'summaryCsv'])->name('somitis.reports.summary.csv');
     Route::get('somitis/{somiti}/reports/member-statement.csv', [App\Http\Controllers\Web\ReportController::class, 'memberStatementCsv'])->name('somitis.reports.member-statement.csv');
@@ -82,6 +84,14 @@ Route::middleware(['auth', 'verified', \App\Middleware\EnsureFirstTimeSomitiCrea
     // Workflows
     Route::get('somitis/{somiti}/workflows', [App\Http\Controllers\Web\WorkflowController::class, 'edit'])->name('somitis.workflows.edit');
     Route::put('somitis/{somiti}/workflows', [App\Http\Controllers\Web\WorkflowController::class, 'update'])->name('somitis.workflows.update');
+
+    // Monthly dues
+    Route::get('somitis/{somiti}/dues', [App\Http\Controllers\Web\DuesController::class, 'index'])->name('somitis.dues');
+
+    // Manager tenure
+    Route::get('somitis/{somiti}/managers', [App\Http\Controllers\Web\ManagerController::class, 'index'])->name('somitis.managers.index');
+    Route::post('somitis/{somiti}/managers', [App\Http\Controllers\Web\ManagerController::class, 'store'])->name('somitis.managers.store');
+    Route::delete('somitis/{somiti}/managers/{manager}', [App\Http\Controllers\Web\ManagerController::class, 'destroy'])->name('somitis.managers.destroy');
 
     // Reports admin index
     Route::get('reports', [App\Http\Controllers\Web\ReportViewController::class, 'index'])->name('reports.index');

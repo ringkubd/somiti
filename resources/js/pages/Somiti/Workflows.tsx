@@ -15,6 +15,7 @@ interface Workflow {
     requires_approval: boolean;
     manager_can_approve_alone: boolean;
     min_approvals_required: number;
+    quorum_type: string;
 }
 
 interface Props {
@@ -89,7 +90,7 @@ export default function SomitiWorkflows({ somiti, workflows }: Props) {
                                     </div>
 
                                     {wf.requires_approval && (
-                                        <div className="grid grid-cols-2 gap-4 pl-4 pb-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pl-4 pb-4">
                                             <div className="flex items-center gap-3">
                                                 <Switch checked={wf.manager_can_approve_alone} onCheckedChange={(v) => toggleWorkflow(idx, 'manager_can_approve_alone', v)} />
                                                 <Label className="text-sm">Manager can approve alone</Label>
@@ -98,6 +99,18 @@ export default function SomitiWorkflows({ somiti, workflows }: Props) {
                                                 <Label className="text-sm whitespace-nowrap">Min approvals:</Label>
                                                 <Input type="number" min="1" className="w-20 h-8" value={wf.min_approvals_required}
                                                     onChange={(e) => toggleWorkflow(idx, 'min_approvals_required', parseInt(e.target.value) || 1)} />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Label className="text-sm whitespace-nowrap">Quorum:</Label>
+                                                <select
+                                                    value={wf.quorum_type || 'count'}
+                                                    onChange={(e) => toggleWorkflow(idx, 'quorum_type', e.target.value)}
+                                                    className="flex h-8 rounded-md border bg-background px-2 py-1 text-sm"
+                                                >
+                                                    <option value="count">Fixed count</option>
+                                                    <option value="all_members">All members</option>
+                                                    <option value="majority">Majority (most votes win)</option>
+                                                </select>
                                             </div>
                                         </div>
                                     )}

@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
-import { Scale, TrendingUp, ArrowRight, FileText } from 'lucide-react';
+import { Scale, TrendingUp, ArrowRight, FileText, PieChart, Scale3D } from 'lucide-react';
 
 interface SomitiSummary { id: number; name: string; unique_code: string; currency_symbol: string; members_count: number; }
 interface Props { somitis: SomitiSummary[] }
@@ -26,6 +26,8 @@ export default function ReportsIndex({ somitis }: Props) {
                             <CardContent className="space-y-3">
                                 <Link href={`/somitis/${s.id}/reports/summary`}><Button variant="outline" size="sm" className="w-full justify-between">Summary <ArrowRight className="h-4 w-4" /></Button></Link>
                                 <Link href={`/somitis/${s.id}/reports/trial-balance`}><Button variant="outline" size="sm" className="w-full justify-between">Trial Balance <ArrowRight className="h-4 w-4" /></Button></Link>
+                                <Link href={`/somitis/${s.id}/reports/balance-sheet`}><Button variant="outline" size="sm" className="w-full justify-between">Balance Sheet <Scale3D className="h-4 w-4" /></Button></Link>
+                                <Link href={`/somitis/${s.id}/reports/portfolio`}><Button variant="outline" size="sm" className="w-full justify-between">Fund Portfolio <PieChart className="h-4 w-4" /></Button></Link>
                                 <Link href={`/somitis/${s.id}/reports/member-statement`}><Button variant="outline" size="sm" className="w-full justify-between">Member Statement <FileText className="h-4 w-4" /></Button></Link>
                                 <Link href={`/somitis/${s.id}`}><Button variant="ghost" size="sm" className="w-full text-xs">View Somiti</Button></Link>
                             </CardContent>

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class LoanRepayment extends Model
 {
-    use \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
+    use \App\Traits\HasApprovals, \App\Traits\HasTenantScope, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'loan_id',

@@ -18,7 +18,7 @@ class SomitiMembershipController extends Controller
             abort(403);
         }
 
-        $request->validate(['user_id' => 'required|exists:users,id', 'role' => 'nullable|string']);
+        $request->validate(['user_id' => 'required|exists:users,id', 'role' => 'nullable|string|in:member,manager,auditor']);
 
         $userId = $request->input('user_id');
         $role = $request->input('role', 'member');
@@ -37,13 +37,20 @@ class SomitiMembershipController extends Controller
             abort(403);
         }
 
-        $request->validate(['role' => 'required|string', 'is_active' => 'nullable|boolean']);
+        $request->validate([
+            'role' => 'nullable|string|in:member,manager,owner,auditor',
+            'is_active' => 'nullable|boolean',
+            'joined_at' => 'nullable|date',
+        ]);
 
         $member = SomitiMember::where('somiti_id', $somiti->id)->where('user_id', $user->id)->firstOrFail();
 
         $member->role = $request->input('role');
         if ($request->has('is_active')) {
             $member->is_active = (bool) $request->input('is_active');
+        }
+        if ($request->has('joined_at')) {
+            $member->joined_at = $request->input('joined_at');
         }
         $member->save();
 

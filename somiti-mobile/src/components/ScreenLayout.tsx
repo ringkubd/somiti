@@ -1,6 +1,7 @@
 import React from 'react';
-import { StatusBar, View, StyleSheet, Platform } from 'react-native';
+import { StatusBar, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../theme';
 
 interface ScreenLayoutProps {
     children: React.ReactNode;
@@ -11,7 +12,7 @@ interface ScreenLayoutProps {
 export default function ScreenLayout({ children, style }: ScreenLayoutProps) {
     return (
         <SafeAreaView style={[styles.safe, style]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.bg} translucent={false} />
             <View style={styles.content}>
                 {children}
             </View>
@@ -22,8 +23,7 @@ export default function ScreenLayout({ children, style }: ScreenLayoutProps) {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: '#f8fafc',
-        // paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+        backgroundColor: colors.bg,
     },
     content: {
         flex: 1,

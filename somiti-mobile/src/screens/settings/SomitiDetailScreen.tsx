@@ -1,64 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import client from '../../api/client';
+import { DetailScreen, DetailRow, AppButton } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { colors, radius, spacing, typography } from '../../theme';
 
 export default function SomitiDetailScreen({ route, navigation }: any) {
+    const { t } = useLanguage();
     const [somiti, setSomiti] = useState<any>(null);
+    const [canManage, setCanManage] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    useEffect(() => {
-        client.get(`/somitis/${route.params?.id || ''}`).then(({ data }) => setSomiti(data)).catch(() => {});
-    }, []);
+    const load = async () => {
+        setLoading(true); setError(false);
+        try {
+            const { data } = await client.get(`/somitis/${route.params?.id || ''}`);
+            setSomiti(data.somiti || data);
+            setCanManage(data.can_manage ?? false);
+        }
+        catch { setError(true); }
+        finally { setLoading(false); }
+    };
+    useEffect(() => { load(); }, []);
 
     const qrUrl = somiti?.unique_code
         ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(somiti.unique_code)}`
         : null;
 
-    if (!somiti) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
-
     return (
-        <ScrollView style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <View style={styles.header}><Text style={styles.title}>{somiti.name}</Text><Text style={styles.code}>{somiti.unique_code}</Text></View>
-
-            {/* QR Code */}
+        <DetailScreen
+            title={somiti?.name || t('somiti')}
+            subtitle={somiti?.unique_code}
+            onBack={() => navigation.goBack()}
+            loading={loading}
+            error={error}
+            onRetry={load}
+            footer={
+                somiti && canManage ? <AppButton title={t('settings')} variant="secondary" onPress={() => navigation.navigate('SomitiSettings', { id: somiti.id })} /> : null
+            }
+        >
             {qrUrl && (
                 <View style={styles.qrSection}>
-                    <Text style={styles.qrLabel}>Share this code with members to join:</Text>
+                    <Text style={styles.qrLabel}>{t('shareCodeWithMembers')}:</Text>
                     <Image source={{ uri: qrUrl }} style={styles.qr} />
                     <Text style={styles.qrCode}>{somiti.unique_code}</Text>
-                    <Text style={styles.qrHint}>Members enter this code to join your somiti</Text>
+                    <Text style={styles.qrHint}>{t('membersEnterCode')}</Text>
                 </View>
             )}
+            <DetailRow label={t('status')} value={somiti?.status} />
+            <DetailRow label={t('currency')} value={somiti ? `${somiti.currency_symbol || '$'} ${somiti.currency || 'USD'}` : null} />
+            <DetailRow label={t('members')} value={`${somiti?.members?.length || 0}`} />
+            <DetailRow label={t('created')} value={somiti && new Date(somiti.created_at).toLocaleDateString()} last />
 
-            <View style={styles.card}>
-                <DetailRow label="Status" value={somiti.status} />
-                <DetailRow label="Currency" value={`${somiti.currency_symbol || '$'} ${somiti.currency || 'USD'}`} />
-                <DetailRow label="Members" value={`${somiti.members?.length || 0}`} />
-                <DetailRow label="Created" value={new Date(somiti.created_at).toLocaleDateString()} />
-            </View>
-            <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('SomitiSettings', { id: somiti.id })}>
-                <Text style={styles.btnText}>Settings</Text>
-            </TouchableOpacity>
-        </ScrollView>
+            {canManage && (
+                <>
+                    <Text style={styles.section}>{t('manage')}</Text>
+                    <View style={styles.actions}>
+                        <AppButton title={t('setManager')} variant="primary" onPress={() => navigation.navigate('Managers', { somitiId: somiti.id })} />
+                        <AppButton title={t('monthlyDues')} variant="secondary" onPress={() => navigation.navigate('DuesOverview', { somitiId: somiti.id })} />
+                        <AppButton title={t('members')} variant="secondary" onPress={() => navigation.navigate('MembersList')} />
+                        <AppButton title={t('balanceSheet')} variant="secondary" onPress={() => navigation.navigate('BalanceSheet')} />
+                        <AppButton title={t('fundPortfolio')} variant="secondary" onPress={() => navigation.navigate('Portfolio')} />
+                    </View>
+                </>
+            )}
+        </DetailScreen>
     );
 }
 
-function DetailRow({ label, value }: any) {
-    return <View style={styles.row}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value || '-'}</Text></View>;
-}
-
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    back: { fontSize: 16, color: '#2563eb', padding: 20, paddingBottom: 0 }, header: { padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b' }, code: { fontSize: 14, color: '#94a3b8', marginTop: 4 },
-    card: { backgroundColor: '#fff', margin: 20, borderRadius: 12, padding: 16 },
-    row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    label: { fontSize: 14, color: '#64748b' }, value: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
-    btn: { backgroundColor: '#2563eb', marginHorizontal: 20, borderRadius: 12, padding: 16, alignItems: 'center' },
-    btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-    qrSection: { alignItems: 'center', padding: 20, backgroundColor: '#fff', margin: 20, borderRadius: 12 },
-    qrLabel: { fontSize: 14, color: '#64748b', marginBottom: 12 },
-    qr: { width: 160, height: 160, borderRadius: 8 },
-    qrCode: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', letterSpacing: 2, marginTop: 12 },
-    qrHint: { fontSize: 12, color: '#94a3b8', marginTop: 8 },
+    qrSection: { alignItems: 'center', padding: spacing.lg, marginBottom: spacing.lg },
+    qrLabel: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
+    qr: { width: 160, height: 160, borderRadius: radius.md },
+    qrCode: { ...typography.h3, color: colors.text, letterSpacing: 2, marginTop: spacing.md },
+    qrHint: { ...typography.caption, color: colors.textMuted, marginTop: spacing.sm },
+    section: { ...typography.label, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm },
+    actions: { gap: spacing.sm, marginBottom: spacing.lg },
 });

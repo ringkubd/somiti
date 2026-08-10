@@ -51,6 +51,7 @@ class WithdrawalController extends Controller
 
         try {
             $withdrawal = WithdrawalService::create($somiti, Auth::id(), $request->only(['amount', 'reason', 'method']));
+            $withdrawal->requestApproval($somiti->created_by_user_id, 'New withdrawal request.');
         } catch (\InvalidArgumentException $e) {
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }

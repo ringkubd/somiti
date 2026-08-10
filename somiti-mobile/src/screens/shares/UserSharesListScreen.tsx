@@ -1,38 +1,32 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
+import { ListHeader } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { colors } from '../../theme';
 
 export default function UserSharesListScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const [items, setItems] = useState<any[]>([]);
-    useFocusEffect(useCallback(() => { client.get('/shares').then(({ data }) => setItems(data.data || [])).catch(() => { }); }, []));
+    const [refreshing, setRefreshing] = useState(false);
+    const fetch = async () => { try { const { data } = await client.get('/shares'); setItems(data.data || []); } catch { } };
+    useFocusEffect(useCallback(() => { fetch(); }, []));
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Member Shares</Text>
-                <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('UserShareCreate')}>
-                    <Text style={styles.addBtnText}>Assign</Text>
-                </TouchableOpacity>
-            </View>
+            <ListHeader title={t('shares')} subtitle={t('shareAllocations')} actionLabel={t('assign')} onAction={() => navigation.navigate('UserShareCreate')} />
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
-                    <ListItem title={`${item.somiti?.name || ''} — ${item.share_count} shares`}
+                    <ListItem title={`${item.somiti?.name || ''} — ${item.share_count} ${t('shares')}`}
                         subtitle={item.user?.name} right={<StatusBadge status={item.status} />}
                         onPress={() => navigation.navigate('UserShareDetail', { id: item.id })} />
                 )}
-                ListEmptyComponent={<EmptyState message="No shares allocated" action="Assign Shares" onAction={() => navigation.navigate('UserShareCreate')} />}
+                ListEmptyComponent={<EmptyState message={t('noShares')} action={t('assignShares')} onAction={() => navigation.navigate('UserShareCreate')} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}
                 contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, header: {
-        flexDirection: 'row', justifyContent: 'space-between',
-        alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
-    },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    addBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-    addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.bg } });

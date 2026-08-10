@@ -23,6 +23,8 @@ interface Somiti {
     total_shares: number | null;
     min_share_per_member: number | null;
     max_share_per_member: number | null;
+    monthly_deposit_amount: string | null;
+    due_day: number | null;
     loan_penalty_rate: string | null;
     loan_grace_days: number | null;
 }
@@ -37,9 +39,10 @@ interface FinancialYear {
 interface Props {
     somiti: Somiti;
     activeFinancialYear: FinancialYear | null;
+    currencies: { code: string; symbol: string; name: string }[];
 }
 
-export default function SomitiSettings({ somiti, activeFinancialYear }: Props) {
+export default function SomitiSettings({ somiti, activeFinancialYear, currencies }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { label: 'Somitis', url: '/somitis' },
         { label: somiti.name, url: `/somitis/${somiti.id}` },
@@ -58,6 +61,8 @@ export default function SomitiSettings({ somiti, activeFinancialYear }: Props) {
         total_shares: somiti.total_shares?.toString() || '',
         min_share_per_member: somiti.min_share_per_member?.toString() || '1',
         max_share_per_member: somiti.max_share_per_member?.toString() || '',
+        monthly_deposit_amount: somiti.monthly_deposit_amount || '',
+        due_day: somiti.due_day?.toString() || '10',
         loan_penalty_rate: somiti.loan_penalty_rate || '0',
         loan_grace_days: somiti.loan_grace_days?.toString() || '0',
         share_value: activeFinancialYear?.share_value || '',
@@ -131,19 +136,55 @@ export default function SomitiSettings({ somiti, activeFinancialYear }: Props) {
                         <CardHeader className="bg-slate-50/50 border-b">
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <DollarSign className="h-5 w-5 text-emerald-500" />
+                                Monthly Dues
+                            </CardTitle>
+                            <CardDescription>Members are reminded to pay by the due day each month</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="monthly_deposit_amount">Monthly Deposit Amount</Label>
+                                    <Input id="monthly_deposit_amount" type="number" step="0.01" min="0" value={data.monthly_deposit_amount}
+                                        onChange={e => setData('monthly_deposit_amount', e.target.value)}
+                                        placeholder="e.g. 500" />
+                                    <p className="text-xs text-gray-400">Expected amount per member per month</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="due_day">Due Day of Month</Label>
+                                    <Input id="due_day" type="number" min="1" max="31" value={data.due_day}
+                                        onChange={e => setData('due_day', e.target.value)}
+                                        placeholder="10" />
+                                    <p className="text-xs text-gray-400">Reminders are sent before and after this day</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <CardHeader className="bg-slate-50/50 border-b">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <DollarSign className="h-5 w-5 text-emerald-500" />
                                 Financial Defaults
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="currency">Currency Code</Label>
-                                    <Input 
-                                        id="currency" 
-                                        value={data.currency} 
-                                        onChange={e => setData('currency', e.target.value)}
-                                        placeholder="USD, BDT, EUR"
-                                    />
+                                    <Label htmlFor="currency">Currency</Label>
+                                    <select
+                                        id="currency"
+                                        value={data.currency}
+                                        onChange={(e) => {
+                                            const c = currencies.find((x) => x.code === e.target.value);
+                                            setData('currency', e.target.value);
+                                            if (c) setData('currency_symbol', c.symbol);
+                                        }}
+                                        className="mt-1 flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                    >
+                                        {currencies.map((c) => (
+                                            <option key={c.code} value={c.code}>{c.code} ({c.symbol}) — {c.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="currency_symbol">Currency Symbol</Label>

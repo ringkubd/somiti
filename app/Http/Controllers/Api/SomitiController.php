@@ -47,7 +47,13 @@ class SomitiController extends Controller
             abort(403);
         }
 
-        return response()->json($somiti->load('members', 'managers'));
+        $user = Auth::user();
+        $somiti->load('members', 'managers');
+
+        return response()->json([
+            'somiti' => $somiti,
+            'can_manage' => $user->isManagerOfSomiti($somiti->id) || $user->isOwnerOfSomiti($somiti->id),
+        ]);
     }
 
     public function update(Request $request, Somiti $somiti)
@@ -79,12 +85,24 @@ class SomitiController extends Controller
 
     public function settings(Somiti $somiti)
     {
-        return response()->json($somiti->only([
-            'id', 'name', 'currency', 'currency_symbol', 'logo_url',
-            'receipt_header', 'receipt_footer', 'phone', 'address',
-            'default_interest_rate', 'total_shares', 'min_share_per_member',
-            'max_share_per_member', 'loan_penalty_rate', 'loan_grace_days',
-        ]));
+        $user = Auth::user();
+
+        return response()->json([
+            'settings' => $somiti->only([
+                'id', 'name', 'currency', 'currency_symbol', 'logo_url',
+                'receipt_header', 'receipt_footer', 'phone', 'address',
+                'default_interest_rate', 'total_shares', 'min_share_per_member',
+                'max_share_per_member', 'monthly_deposit_amount', 'due_day',
+                'loan_penalty_rate', 'loan_grace_days',
+            ]),
+            'can_manage' => $user->isManagerOfSomiti($somiti->id) || $user->isOwnerOfSomiti($somiti->id),
+            'currencies' => \App\Services\CurrencyService::all(),
+        ]);
+    }
+
+    public function currencies()
+    {
+        return response()->json(\App\Services\CurrencyService::all());
     }
 
     public function workflows(Somiti $somiti)
@@ -106,6 +124,7 @@ class SomitiController extends Controller
             'workflows.*.requires_approval' => 'boolean',
             'workflows.*.manager_can_approve_alone' => 'boolean',
             'workflows.*.min_approvals_required' => 'integer|min:1',
+            'workflows.*.quorum_type' => 'nullable|in:count,all_members',
         ]);
 
         foreach ($validated['workflows'] as $wf) {
@@ -115,6 +134,7 @@ class SomitiController extends Controller
                     'requires_approval' => $wf['requires_approval'] ?? true,
                     'manager_can_approve_alone' => $wf['manager_can_approve_alone'] ?? true,
                     'min_approvals_required' => $wf['min_approvals_required'] ?? 1,
+                    'quorum_type' => $wf['quorum_type'] ?? 'count',
                 ]
             );
         }

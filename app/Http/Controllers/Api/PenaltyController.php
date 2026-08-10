@@ -54,6 +54,7 @@ class PenaltyController extends Controller
             $request->only(['somiti_id', 'user_id', 'type', 'amount', 'reference_type', 'reference_id', 'notes']),
             ['status' => 'pending']
         ));
+        $penalty->requestApproval($somiti->created_by_user_id, 'New penalty.');
 
         return response()->json($penalty->load('user'), 201);
     }

@@ -1,79 +1,62 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
+import { ListHeader, ConfirmDialog } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { colors } from '../../theme';
 
 export default function WithdrawalsListScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const [items, setItems] = useState<any[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [pendingItem, setPendingItem] = useState<any>(null);
 
-    const fetch = async () => {
-        try {
-            const { data } = await client.get('/withdrawals');
-            setItems(data.data || []);
-        } catch {}
-    };
-
+    const fetch = async () => { try { const { data } = await client.get('/withdrawals'); setItems(data.data || []); } catch { } };
     useFocusEffect(useCallback(() => { fetch(); }, []));
 
-    const decide = async (item: any, decision: string) => {
+    const decide = async (decision: string) => {
+        if (!pendingItem) return;
         try {
-            await client.post(`/withdrawals/${item.id}/${decision}`);
-            Alert.alert('Done', `Withdrawal ${decision}`);
+            await client.post(`/withdrawals/${pendingItem.id}/${decision}`);
+            Alert.alert(t('done'), `${t('withdrawals')} ${decision}`);
+            setPendingItem(null);
             fetch();
-        } catch (err: any) {
-            Alert.alert('Error', err.response?.data?.message || 'Failed');
-        }
+        } catch (err: any) { Alert.alert(t('error'), err.response?.data?.message || 'Failed'); }
+        finally { setPendingItem(null); }
     };
 
     const onPressItem = (item: any) => {
-        if (item.status === 'pending') {
-            Alert.alert('Decision', 'Approve or reject this withdrawal?', [
-                { text: 'Approve', onPress: () => decide(item, 'approve') },
-                { text: 'Reject', style: 'destructive', onPress: () => decide(item, 'reject') },
-                { text: 'Cancel', style: 'cancel' },
-            ]);
-        } else {
-            Alert.alert(item.user?.name || 'Withdrawal', `${getCurrencySymbol()}${parseFloat(item.amount).toLocaleString()}\n${item.reason || 'No reason'}`);
-        }
+        if (item.status === 'pending') setPendingItem(item);
+        else Alert.alert(item.user?.name || t('withdrawals'), `${getCurrencySymbol()}${parseFloat(item.amount).toLocaleString()}\n${item.reason || t('notes')}`);
     };
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Withdrawals</Text>
-                <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('WithdrawalCreate')}>
-                    <Text style={styles.addBtnText}>+ Request</Text>
-                </TouchableOpacity>
-            </View>
-            <FlatList
-                data={items}
-                keyExtractor={(i) => i.id.toString()}
+            <ListHeader title={t('withdrawals')} subtitle={t('savingsWithdrawals')} actionLabel={t('request')} onAction={() => navigation.navigate('WithdrawalCreate')} />
+            <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
-                    <ListItem
-                        title={`${getCurrencySymbol()}${parseFloat(item.amount || '0').toLocaleString()}`}
+                    <ListItem title={`${getCurrencySymbol()}${parseFloat(item.amount || '0').toLocaleString()}`}
                         subtitle={`${item.user?.name || ''}${item.reason ? ` • ${item.reason}` : ''}`}
-                        right={<StatusBadge status={item.status} />}
-                        onPress={() => onPressItem(item)}
-                    />
+                        right={<StatusBadge status={item.status} />} onPress={() => onPressItem(item)} />
                 )}
-                ListEmptyComponent={<EmptyState message="No withdrawals yet" action="Request Withdrawal" onAction={() => navigation.navigate('WithdrawalCreate')} />}
+                ListEmptyComponent={<EmptyState message={t('noWithdrawals')} action={t('requestWithdrawal')} onAction={() => navigation.navigate('WithdrawalCreate')} />}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}
-                contentContainerStyle={items.length === 0 ? { flex: 1 } : {}}
+                contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />
+            <ConfirmDialog
+                visible={!!pendingItem}
+                title={t('approve') + '?'}
+                message={`${getCurrencySymbol()}${pendingItem ? parseFloat(pendingItem.amount).toLocaleString() : ''}`}
+                confirmLabel={t('approve')}
+                cancelLabel={t('reject')}
+                icon="checkmark-circle-outline"
+                onConfirm={() => decide('approve')}
+                onCancel={() => setPendingItem(null)}
             />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
-    },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    addBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-    addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.bg } });

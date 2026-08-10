@@ -18,6 +18,7 @@ class SomitiSettingController extends Controller
         return Inertia::render('Somitis/Settings', [
             'somiti' => $somiti->load('financialYears'),
             'activeFinancialYear' => $activeFy,
+            'currencies' => \App\Services\CurrencyService::all(),
         ]);
     }
 
@@ -26,7 +27,7 @@ class SomitiSettingController extends Controller
         $this->authorize('update', $somiti);
 
         $validated = $request->validate([
-            'currency' => 'required|string|max:10',
+            'currency' => 'required|string|size:3',
             'currency_symbol' => 'required|string|max:5',
             'logo_url' => 'nullable|url',
             'receipt_header' => 'nullable|string|max:255',
@@ -37,10 +38,16 @@ class SomitiSettingController extends Controller
             'total_shares' => 'nullable|integer|min:0',
             'min_share_per_member' => 'nullable|integer|min:1',
             'max_share_per_member' => 'nullable|integer|min:1',
+            'monthly_deposit_amount' => 'nullable|numeric|min:0',
+            'due_day' => 'nullable|integer|min:1|max:31',
             'loan_penalty_rate' => 'nullable|numeric|min:0|max:100',
             'loan_grace_days' => 'nullable|integer|min:0',
             'share_value' => 'nullable|numeric|min:0',
         ]);
+
+        if (! \App\Services\CurrencyService::isValid($validated['currency'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['currency' => 'Unsupported currency code.']);
+        }
 
         $somiti->update($validated);
 

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { Alert } from 'react-native';
 import client from '../../api/client';
 import { useSomiti } from '../../hooks/useSomiti';
 import { SelectField } from '../../components/SelectField';
+import { FormScreen, AppInput } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function UserShareCreateScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const { somitiId } = useSomiti();
     const [userId, setUserId] = useState(''); const [shareCount, setShareCount] = useState('1');
     const [fyId, setFyId] = useState(''); const [submitting, setSubmitting] = useState(false);
@@ -22,35 +25,20 @@ export default function UserShareCreateScreen({ navigation }: any) {
     }, [somitiId]);
 
     const submit = async () => {
-        if (!userId || !fyId) { Alert.alert('Error', 'Select member and FY'); return; }
+        if (!userId || !fyId) { Alert.alert(t('error'), t('selectMemberAndFy')); return; }
         setSubmitting(true);
         try {
             await client.post('/shares', { somiti_id: somitiId, user_id: parseInt(userId), share_count: parseInt(shareCount), financial_year_id: parseInt(fyId) });
-            Alert.alert('Success', 'Shares assigned'); navigation.goBack();
-        } catch (err: any) { Alert.alert('Error', err.response?.data?.message || 'Failed'); }
+            Alert.alert(t('done'), t('sharesAssigned')); navigation.goBack();
+        } catch (err: any) { Alert.alert(t('error'), err.response?.data?.message || 'Failed'); }
         finally { setSubmitting(false); }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <Text style={styles.title}>Assign Shares</Text>
-
-            <SelectField label="Member" value={userId} options={members} onSelect={setUserId} placeholder="Select member" />
-            <SelectField label="Financial Year" value={fyId} options={fys} onSelect={setFyId} placeholder="Select FY" />
-
-            <TextInput style={styles.input} placeholder="Share Count" value={shareCount} onChangeText={setShareCount} keyboardType="number-pad" />
-            <TouchableOpacity style={styles.submitBtn} onPress={submit} disabled={submitting}>
-                {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Assign Shares</Text>}
-            </TouchableOpacity>
-        </ScrollView>
+        <FormScreen title={t('assignShares')} subtitle={t('allocateShares')} onBack={() => navigation.goBack()} submitLabel={t('assignShares')} onSubmit={submit} submitting={submitting}>
+            <SelectField label={t('member')} value={userId} options={members} onSelect={setUserId} placeholder={t('selectMember')} />
+            <SelectField label={t('financialYear')} value={fyId} options={fys} onSelect={setFyId} placeholder={t('selectFy')} />
+            <AppInput label={t('shareCount')} placeholder="1" value={shareCount} onChangeText={setShareCount} keyboardType="number-pad" />
+        </FormScreen>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, content: { padding: 20, paddingTop: 60 },
-    back: { fontSize: 16, color: '#2563eb', marginBottom: 16 }, title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', marginBottom: 24 },
-    input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16 },
-    submitBtn: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
-    submitText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-});

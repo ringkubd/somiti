@@ -38,7 +38,9 @@ class LoanController extends Controller
             abort(403);
         }
 
+        $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
         $loan = Loan::create(array_merge($request->only(['somiti_id', 'amount', 'term_months', 'purpose']), ['user_id' => Auth::id(), 'status' => 'pending']));
+        $loan->requestApproval($somiti->created_by_user_id, 'New loan application.');
 
         return response()->json($loan, 201);
     }

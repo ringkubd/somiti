@@ -1,11 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
-import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { ListHeader } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { colors } from '../../theme';
 
 export default function DepositsListScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const [deposits, setDeposits] = useState<any[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -20,12 +23,12 @@ export default function DepositsListScreen({ navigation }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Deposits</Text>
-                <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('DepositCreate')}>
-                    <Text style={styles.addBtnText}>+ New</Text>
-                </TouchableOpacity>
-            </View>
+            <ListHeader
+                title={t('deposits')}
+                subtitle={t('savingsContributions')}
+                actionLabel={t('new')}
+                onAction={() => navigation.navigate('DepositCreate')}
+            />
             <FlatList
                 data={deposits}
                 keyExtractor={(i) => i.id.toString()}
@@ -37,7 +40,7 @@ export default function DepositsListScreen({ navigation }: any) {
                         onPress={() => navigation.navigate('DepositDetail', { id: item.id })}
                     />
                 )}
-                ListEmptyComponent={<EmptyState message="No deposits yet" action="Create Deposit" onAction={() => navigation.navigate('DepositCreate')} />}
+                ListEmptyComponent={<EmptyState message={t('noDeposits')} action={t('newDeposit')} onAction={() => navigation.navigate('DepositCreate')} />}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}
                 contentContainerStyle={deposits.length === 0 ? { flex: 1 } : {}}
             />
@@ -45,13 +48,4 @@ export default function DepositsListScreen({ navigation }: any) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
-    },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-    addBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-    addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.bg } });

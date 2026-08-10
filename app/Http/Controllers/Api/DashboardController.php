@@ -40,6 +40,15 @@ class DashboardController extends Controller
             'share_capital' => (float) AccountingService::getAccountBalance(\App\Models\ChartOfAccount::CODE_SHARE_CAPITAL, $somiti->id),
         ];
 
+        // Fund allocation snapshot for the financial dashboard
+        $portfolio = \App\Services\ReportService::portfolio($somiti);
+        $dues = \App\Services\DuesService::somitiDues($somiti);
+        $currentManager = \App\Models\SomitiManager::where('somiti_id', $somiti->id)
+            ->where(fn ($q) => $q->whereNull('to_date')->orWhere('to_date', '>=', now()->toDateString()))
+            ->with('user')
+            ->latest('from_date')
+            ->first();
+
         return response()->json([
             'somitis' => $somitis->map(fn($s) => [
                 'id' => $s->id,
@@ -56,6 +65,27 @@ class DashboardController extends Controller
                 'currency' => $somiti->currency ?? 'USD',
             ],
             'stats' => $stats,
+            'fund' => [
+                'total_fund' => $portfolio['total_fund'],
+                'cash' => $portfolio['cash'],
+                'bank' => $portfolio['bank'],
+                'invested' => $portfolio['invested'],
+                'loans_outstanding' => $portfolio['loans_outstanding'],
+                'deployment_rate' => $portfolio['deployment_rate'],
+                'member_savings' => $portfolio['member_savings'],
+            ],
+            'dues' => [
+                'due_count' => (int) collect($dues['members'] ?? [])->sum('due_count'),
+                'overdue_count' => (int) collect($dues['members'] ?? [])->sum('overdue_count'),
+                'expected' => $dues['totals']['expected'] ?? 0,
+                'paid' => $dues['totals']['paid'] ?? 0,
+            ],
+            'manager' => $currentManager ? [
+                'id' => $currentManager->user_id,
+                'name' => $currentManager->user?->name,
+                'from_date' => $currentManager->from_date?->toDateString(),
+                'to_date' => $currentManager->to_date?->toDateString(),
+            ] : null,
             'recent_activity' => collect(
                 Deposit::with('user')->where('somiti_id', $somiti->id)->latest()->limit(5)->get()
                     ->map(fn($d) => ['type' => 'deposit', 'description' => $d->user->name . ' deposited', 'amount' => (float) $d->amount, 'status' => $d->status])

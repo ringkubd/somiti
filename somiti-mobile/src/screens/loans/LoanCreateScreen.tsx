@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Alert, View } from 'react-native';
 import client from '../../api/client';
 import { useSomiti } from '../../hooks/useSomiti';
+import { FormScreen, AppInput } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { maybeShowInterstitial } from '../../ads/useInterstitial';
+import { spacing } from '../../theme';
 
 export default function LoanCreateScreen({ navigation }: any) {
+    const { t } = useLanguage();
     const { somitiId } = useSomiti();
     const [amount, setAmount] = useState('');
     const [interestRate, setInterestRate] = useState('5');
@@ -12,36 +17,26 @@ export default function LoanCreateScreen({ navigation }: any) {
     const [submitting, setSubmitting] = useState(false);
 
     const submit = async () => {
-        if (!amount) { Alert.alert('Error', 'Amount required'); return; }
+        if (!amount) { Alert.alert(t('error'), t('amount') + ' ' + t('required')); return; }
         setSubmitting(true);
         try {
             await client.post('/loans', { somiti_id: somitiId, amount: parseFloat(amount), interest_rate: parseFloat(interestRate), term_months: parseInt(durationMonths), purpose });
-            Alert.alert('Success', 'Loan submitted'); navigation.goBack();
-        } catch (err: any) { Alert.alert('Error', err.response?.data?.message || 'Failed'); }
+            Alert.alert(t('done'), t('loanSubmitted')); navigation.goBack();
+            maybeShowInterstitial();
+        } catch (err: any) { Alert.alert(t('error'), err.response?.data?.message || 'Failed'); }
         finally { setSubmitting(false); }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-            <Text style={styles.title}>New Loan</Text>
-            <TextInput style={styles.input} placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+        <FormScreen title={t('newLoan')} subtitle={t('applyForLoan')} onBack={() => navigation.goBack()} submitLabel={t('submitApplication')} onSubmit={submit} submitting={submitting}>
+            <AppInput label={t('amount')} placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
             <View style={styles.row}>
-                <TextInput style={[styles.input, { flex: 1 }]} placeholder="Interest Rate %" value={interestRate} onChangeText={setInterestRate} keyboardType="decimal-pad" />
-                <TextInput style={[styles.input, { flex: 1 }]} placeholder="Months" value={durationMonths} onChangeText={setDurationMonths} keyboardType="number-pad" />
+                <View style={styles.flex}><AppInput label={t('interestRate')} placeholder="5" value={interestRate} onChangeText={setInterestRate} keyboardType="decimal-pad" /></View>
+                <View style={styles.flex}><AppInput label={t('months')} placeholder="12" value={durationMonths} onChangeText={setDurationMonths} keyboardType="number-pad" /></View>
             </View>
-            <TextInput style={[styles.input, { height: 80 }]} placeholder="Purpose (optional)" value={purpose} onChangeText={setPurpose} multiline />
-            <TouchableOpacity style={styles.submitBtn} onPress={submit} disabled={submitting}>
-                {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit Application</Text>}
-            </TouchableOpacity>
-        </ScrollView>
+            <AppInput label={t('purpose')} placeholder={t('optional')} value={purpose} onChangeText={setPurpose} multiline />
+        </FormScreen>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' }, content: { padding: 20, paddingTop: 60 },
-    back: { fontSize: 16, color: '#2563eb', marginBottom: 16 }, title: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', marginBottom: 24 },
-    input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16 },
-    row: { flexDirection: 'row', gap: 12 }, submitBtn: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
-    submitText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-});
+const styles = StyleSheet.create({ row: { flexDirection: 'row', gap: spacing.md }, flex: { flex: 1 } });

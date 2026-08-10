@@ -50,6 +50,8 @@ class Somiti extends Model
         'total_shares',
         'min_share_per_member',
         'max_share_per_member',
+        'monthly_deposit_amount',
+        'due_day',
         'loan_penalty_rate',
         'loan_grace_days',
     ];
@@ -57,6 +59,7 @@ class Somiti extends Model
     protected $casts = [
         'start_date' => 'date',
         'financial_year_start' => 'date',
+        'monthly_deposit_amount' => 'decimal:2',
     ];
 
     public function createdBy(): BelongsTo

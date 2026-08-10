@@ -10,6 +10,7 @@ use App\Models\Loan;
 use App\Models\Somiti;
 use App\Models\User;
 use App\Services\AccountingService;
+use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -59,6 +60,22 @@ class ReportController extends Controller
         ]);
     }
 
+    public function balanceSheet(Somiti $somiti)
+    {
+        return Inertia::render('Reports/BalanceSheet', [
+            'somiti' => $somiti,
+            'report' => ReportService::balanceSheet($somiti),
+        ]);
+    }
+
+    public function portfolio(Somiti $somiti)
+    {
+        return Inertia::render('Reports/Portfolio', [
+            'somiti' => $somiti,
+            'report' => ReportService::portfolio($somiti),
+        ]);
+    }
+
     /**
      * Per-member financial statement.
      */
@@ -100,7 +117,7 @@ class ReportController extends Controller
             ->where('somiti_id', $somiti->id)
             ->where('user_id', $userId)
             ->latest()
-            ->get(['id', 'amount', 'interest_rate', 'interest_type', 'duration_months', 'outstanding_balance', 'status', 'created_at']);
+            ->get(['id', 'amount', 'interest_rate', 'interest_type', 'term_months', 'outstanding_balance', 'status', 'created_at']);
 
         $transactions = JournalEntryLine::with(['journalEntry', 'chartOfAccount'])
             ->where('member_id', $userId)

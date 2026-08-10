@@ -18,6 +18,7 @@ class Approval extends Model
         'user_id',
         'status',
         'comment',
+        'signature',
         'decided_at',
     ];
 

@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import client from '../../api/client';
+import { ErrorState } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { colors, radius, shadows, spacing, typography } from '../../theme';
 
 export default function DepositReceiptScreen({ route, navigation }: any) {
+    const { t } = useLanguage();
     const { somitiId, depositId } = route.params || {};
     const [data, setData] = useState<any>(null);
+    const [error, setError] = useState(false);
 
-    useEffect(() => {
-        client.get(`/somitis/${somitiId}/receipts/deposit/${depositId}`).then(({ data }) => setData(data)).catch(() => {});
-    }, [somitiId, depositId]);
+    const load = async () => {
+        setError(false); setData(null);
+        try { const { data: d } = await client.get(`/somitis/${somitiId}/receipts/deposit/${depositId}`); setData(d); }
+        catch { setError(true); }
+    };
+    useEffect(() => { load(); }, [somitiId, depositId]);
 
-    if (!data) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
+    if (error) return <View style={styles.centerFull}><ErrorState onRetry={load} /></View>;
+    if (!data) return <View style={styles.centerFull}><ActivityIndicator size="large" color={colors.primary} /></View>;
 
     const { somiti, deposit } = data;
     const symbol = somiti.currency_symbol || '$';
@@ -24,76 +34,74 @@ export default function DepositReceiptScreen({ route, navigation }: any) {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-                <TouchableOpacity onPress={shareReceipt}><Text style={styles.share}>Share</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="chevron-back" size={24} color={colors.text} />
+                </TouchableOpacity>
+                <Text style={styles.topTitle}>{t('receipt')}</Text>
+                <TouchableOpacity onPress={shareReceipt} style={styles.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="share-outline" size={22} color={colors.primary} />
+                </TouchableOpacity>
             </View>
+
             <View style={styles.receipt}>
+                <View style={styles.logoRow}>
+                    <View style={styles.logoBadge}><Ionicons name="people" size={22} color={colors.textOnPrimary} /></View>
+                    <Text style={styles.title}>{somiti.name}</Text>
+                </View>
                 {!!somiti.receipt_header && <Text style={styles.headerText}>{somiti.receipt_header}</Text>}
-                <Text style={styles.title}>{somiti.name}</Text>
                 <Text style={styles.subtitle}>{somiti.unique_code}</Text>
                 {!!somiti.address && <Text style={styles.meta}>{somiti.address}</Text>}
                 {!!somiti.phone && <Text style={styles.meta}>{somiti.phone}</Text>}
 
                 <View style={styles.divider} />
-                <Text style={styles.receiptLabel}>DEPOSIT RECEIPT</Text>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Receipt #</Text>
-                    <Text style={styles.value}>{deposit.id}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Member</Text>
-                    <Text style={styles.value}>{deposit.user?.name}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Amount</Text>
-                    <Text style={styles.amount}>{symbol}{Number(deposit.amount).toLocaleString()}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Type</Text>
-                    <Text style={styles.value}>{deposit.type || '-'}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Date</Text>
-                    <Text style={styles.value}>{new Date(deposit.created_at).toLocaleDateString()}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Status</Text>
-                    <Text style={[styles.value, { color: deposit.status === 'approved' ? '#10b981' : '#f59e0b' }]}>{deposit.status.toUpperCase()}</Text>
-                </View>
-                {!!deposit.approver && (
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Approved by</Text>
-                        <Text style={styles.value}>{deposit.approver.name}</Text>
-                    </View>
-                )}
+                <Text style={styles.receiptLabel}>{t('depositReceipt')}</Text>
+                <Row label={`${t('receipt')} #`} value={`#${deposit.id}`} />
+                <Row label={t('member')} value={deposit.user?.name} />
+                <Row label={t('amount')} value={`${symbol}${Number(deposit.amount).toLocaleString()}`} strong />
+                <Row label={t('type')} value={deposit.type || '-'} />
+                <Row label={t('date')} value={new Date(deposit.created_at).toLocaleDateString()} />
+                <Row label={t('status')} value={deposit.status.toUpperCase()} highlight={deposit.status === 'approved' ? colors.success : colors.warning} />
+                {!!deposit.approver && <Row label={t('approvedBy')} value={deposit.approver.name} />}
 
                 <View style={styles.divider} />
                 {!!somiti.receipt_footer && <Text style={styles.footer}>{somiti.receipt_footer}</Text>}
-                <Text style={styles.thanks}>Thank you!</Text>
+                <Text style={styles.thanks}>{t('thankYou')}!</Text>
             </View>
         </ScrollView>
     );
 }
 
+function Row({ label, value, strong, highlight }: any) {
+    return (
+        <View style={styles.row}>
+            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.value, strong && styles.strong, highlight && { color: highlight }]}>{value}</Text>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#e2e8f0' },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' },
-    topBar: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingBottom: 8 },
-    back: { fontSize: 16, color: '#2563eb' },
-    share: { fontSize: 16, color: '#2563eb', fontWeight: '600' },
-    receipt: { backgroundColor: '#fff', margin: 20, marginTop: 8, borderRadius: 12, padding: 24, elevation: 2 },
-    headerText: { textAlign: 'center', fontSize: 13, color: '#64748b', marginBottom: 8 },
-    title: { textAlign: 'center', fontSize: 22, fontWeight: 'bold', color: '#1e293b' },
-    subtitle: { textAlign: 'center', fontSize: 13, color: '#94a3b8', marginTop: 4 },
-    meta: { textAlign: 'center', fontSize: 12, color: '#94a3b8', marginTop: 2 },
-    divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 18 },
-    receiptLabel: { textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: '#2563eb', letterSpacing: 2, marginBottom: 16 },
-    row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-    label: { fontSize: 14, color: '#64748b' },
-    value: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
-    amount: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-    footer: { textAlign: 'center', fontSize: 12, color: '#64748b', marginBottom: 12 },
-    thanks: { textAlign: 'center', fontSize: 14, fontWeight: '600', color: '#2563eb' },
+    container: { flex: 1, backgroundColor: colors.bg },
+    content: { paddingBottom: spacing.xxl },
+    centerFull: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
+    topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+    topBtn: { width: 34, alignItems: 'center' },
+    topTitle: { ...typography.h3, color: colors.text },
+    receipt: { backgroundColor: colors.surface, margin: spacing.lg, borderRadius: radius.lg, padding: spacing.xxl, ...shadows.card },
+    logoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+    logoBadge: { width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+    headerText: { textAlign: 'center', fontSize: 13, color: colors.textSecondary, marginBottom: spacing.sm },
+    title: { textAlign: 'center', fontSize: 22, fontWeight: '700', color: colors.text },
+    subtitle: { textAlign: 'center', fontSize: 13, color: colors.textMuted, marginTop: 4 },
+    meta: { textAlign: 'center', fontSize: 12, color: colors.textMuted, marginTop: 2 },
+    divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.lg },
+    receiptLabel: { textAlign: 'center', fontSize: 12, fontWeight: '700', color: colors.primary, letterSpacing: 2, marginBottom: spacing.lg },
+    row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
+    label: { fontSize: 14, color: colors.textSecondary },
+    value: { fontSize: 14, fontWeight: '600', color: colors.text },
+    strong: { fontSize: 16, fontWeight: '700' },
+    footer: { textAlign: 'center', fontSize: 12, color: colors.textSecondary, marginBottom: spacing.md },
+    thanks: { textAlign: 'center', fontSize: 14, fontWeight: '600', color: colors.primary },
 });

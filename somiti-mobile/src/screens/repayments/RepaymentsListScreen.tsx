@@ -1,81 +1,71 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
+import { ListHeader, ConfirmDialog } from '../../components/ui';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { colors } from '../../theme';
 
 export default function RepaymentsListScreen({ route, navigation }: any) {
+    const { t } = useLanguage();
     const loanId = route.params?.loanId;
-    const [repayments, setRepayments] = useState<any[]>([]);
+    const [items, setItems] = useState<any[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [pendingItem, setPendingItem] = useState<any>(null);
 
     const fetch = async () => {
         try {
             const url = loanId ? `/loans/${loanId}/repayments` : '/repayments';
             const { data } = await client.get(url);
-            setRepayments(data.data || []);
-        } catch {}
+            setItems(data.data || []);
+        } catch { }
     };
-
     useFocusEffect(useCallback(() => { fetch(); }, [loanId]));
 
-    const decide = async (item: any, decision: string) => {
+    const decide = async (decision: string) => {
+        if (!pendingItem) return;
         try {
-            await client.post(`/repayments/${item.id}/${decision}`);
-            Alert.alert('Done', `Repayment ${decision}`);
+            await client.post(`/repayments/${pendingItem.id}/${decision}`);
+            Alert.alert(t('done'), `${t('repayments')} ${decision}`);
+            setPendingItem(null);
             fetch();
-        } catch (err: any) {
-            Alert.alert('Error', err.response?.data?.message || 'Failed');
-        }
+        } catch (err: any) { Alert.alert(t('error'), err.response?.data?.message || 'Failed'); }
+        finally { setPendingItem(null); }
     };
 
-    const onPressItem = (item: any) => {
-        if (item.status === 'pending') {
-            Alert.alert('Decision', 'Approve or reject this repayment?', [
-                { text: 'Approve', onPress: () => decide(item, 'approve') },
-                { text: 'Reject', style: 'destructive', onPress: () => decide(item, 'reject') },
-                { text: 'Cancel', style: 'cancel' },
-            ]);
-        }
-    };
+    const onPressItem = (item: any) => { if (item.status === 'pending') setPendingItem(item); };
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>{loanId ? `Loan #${loanId} Repayments` : 'Repayments'}</Text>
-                {loanId && (
-                    <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('RepaymentCreate', { loanId })}>
-                        <Text style={styles.addBtnText}>+ Pay</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
-            <FlatList
-                data={repayments}
-                keyExtractor={(i) => i.id.toString()}
+            <ListHeader
+                title={loanId ? `${t('loans')} #${loanId}` : t('repayments')}
+                subtitle={t('loanRepaymentsList')}
+                actionLabel={t('new')}
+                onAction={() => navigation.navigate('RepaymentCreate', { loanId })}
+            />
+            <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
-                    <ListItem
-                        title={`${getCurrencySymbol()}${parseFloat(item.amount || '0').toLocaleString()}`}
-                        subtitle={`${item.user?.name || ''} • ${item.payment_date ? new Date(item.payment_date).toLocaleDateString() : ''}`}
-                        right={<StatusBadge status={item.status} />}
-                        onPress={() => onPressItem(item)}
-                    />
+                    <ListItem title={`${getCurrencySymbol()}${parseFloat(item.amount || '0').toLocaleString()}`}
+                        subtitle={`${item.user?.name || ''} • ${new Date(item.created_at).toLocaleDateString()}`}
+                        right={<StatusBadge status={item.status} />} onPress={() => onPressItem(item)} />
                 )}
-                ListEmptyComponent={<EmptyState message="No repayments yet" action={loanId ? 'Make a Payment' : undefined} onAction={() => loanId && navigation.navigate('RepaymentCreate', { loanId })} />}
+                ListEmptyComponent={<EmptyState message={t('noRepayments')} action={t('loanRepayment')} onAction={() => navigation.navigate('RepaymentCreate', { loanId })} />}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}
-                contentContainerStyle={repayments.length === 0 ? { flex: 1 } : {}}
+                contentContainerStyle={items.length === 0 ? { flex: 1 } : {}} />
+            <ConfirmDialog
+                visible={!!pendingItem}
+                title={t('approve') + '?'}
+                message={`${getCurrencySymbol()}${pendingItem ? parseFloat(pendingItem.amount).toLocaleString() : ''}`}
+                confirmLabel={t('approve')}
+                cancelLabel={t('reject')}
+                icon="checkmark-circle-outline"
+                onConfirm={() => decide('approve')}
+                onCancel={() => setPendingItem(null)}
             />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    header: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingHorizontal: 20, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
-    },
-    title: { fontSize: 22, fontWeight: 'bold', color: '#1e293b', flex: 1 },
-    addBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-    addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.bg } });

@@ -2,9 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, View } from 'react-native';
-import { Icon } from 'react-native-paper';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
+import { colors, gradients, radius, shadows, spacing } from '../theme';
+import { useLanguage } from '../i18n/LanguageContext';
+
+const appStyles = StyleSheet.create({
+    tabActive: {
+        width: 40,
+        height: 40,
+        borderRadius: radius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
 
 // Auth screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -33,6 +46,7 @@ import ShareTransfersListScreen from '../screens/transfers/ShareTransfersListScr
 import ShareTransferCreateScreen from '../screens/transfers/ShareTransferCreateScreen';
 import ShareTransferDetailScreen from '../screens/transfers/ShareTransferDetailScreen';
 import ApprovalsListScreen from '../screens/approvals/ApprovalsListScreen';
+import MoreScreen from '../screens/settings/MoreScreen';
 import ProfileScreen from '../screens/settings/ProfileScreen';
 import ChangePasswordScreen from '../screens/settings/ChangePasswordScreen';
 import SomitiDetailScreen from '../screens/settings/SomitiDetailScreen';
@@ -56,6 +70,16 @@ import DividendsListScreen from '../screens/dividends/DividendsListScreen';
 import DividendCreateScreen from '../screens/dividends/DividendCreateScreen';
 import DividendDetailScreen from '../screens/dividends/DividendDetailScreen';
 import DepositReceiptScreen from '../screens/receipts/DepositReceiptScreen';
+import MyDuesScreen from '../screens/dues/MyDuesScreen';
+import DuesOverviewScreen from '../screens/dues/DuesOverviewScreen';
+import MemberDuesScreen from '../screens/dues/MemberDuesScreen';
+import ManagersScreen from '../screens/settings/ManagersScreen';
+import ManagerAddScreen from '../screens/settings/ManagerAddScreen';
+import BalanceSheetScreen from '../screens/reports/BalanceSheetScreen';
+import ProfitLossScreen from '../screens/reports/ProfitLossScreen';
+import PortfolioScreen from '../screens/reports/PortfolioScreen';
+import MemberProfilesScreen from '../screens/reports/MemberProfilesScreen';
+import MemberProfileScreen from '../screens/reports/MemberProfileScreen';
 
 // Common layout wrapper
 import ScreenLayout from '../components/ScreenLayout';
@@ -143,6 +167,16 @@ function TransactionsStack() {
             <Stack.Screen name="DividendCreate" component={withLayout(DividendCreateScreen)} />
             <Stack.Screen name="DividendDetail" component={withLayout(DividendDetailScreen)} />
             <Stack.Screen name="DepositReceipt" component={withLayout(DepositReceiptScreen)} />
+            <Stack.Screen name="MyDues" component={withLayout(MyDuesScreen)} />
+            <Stack.Screen name="DuesOverview" component={withLayout(DuesOverviewScreen)} />
+            <Stack.Screen name="MemberDues" component={withLayout(MemberDuesScreen)} />
+            <Stack.Screen name="Managers" component={withLayout(ManagersScreen)} />
+            <Stack.Screen name="ManagerAdd" component={withLayout(ManagerAddScreen)} />
+            <Stack.Screen name="BalanceSheet" component={withLayout(BalanceSheetScreen)} />
+            <Stack.Screen name="ProfitLoss" component={withLayout(ProfitLossScreen)} />
+            <Stack.Screen name="Portfolio" component={withLayout(PortfolioScreen)} />
+            <Stack.Screen name="MemberProfiles" component={withLayout(MemberProfilesScreen)} />
+            <Stack.Screen name="MemberProfile" component={withLayout(MemberProfileScreen)} />
         </Stack.Navigator>
     );
 }
@@ -151,6 +185,7 @@ function TransactionsStack() {
 function MoreStack() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="MoreHome" component={withLayout(MoreScreen)} />
             <Stack.Screen name="ApprovalsList" component={withLayout(ApprovalsListScreen)} />
             <Stack.Screen name="ReportsSummary" component={withLayout(ReportsSummaryScreen)} />
             <Stack.Screen name="ReportsTrialBalance" component={withLayout(ReportsTrialBalanceScreen)} />
@@ -176,6 +211,7 @@ function ChatStack() {
 // ─── Tab Navigator ───────────────────────────────
 function AppTabs() {
     const [badge, setBadge] = useState(0);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const remove = addNotificationListener(() => setBadge(getUnreadCount()));
@@ -199,16 +235,47 @@ function AppTabs() {
         <Tab.Navigator
             screenOptions={({ route }: any) => ({
                 headerShown: false,
-                tabBarStyle: { backgroundColor: '#fff', borderTopColor: '#f1f5f9', height: 60, paddingBottom: 8, paddingTop: 4 },
-                tabBarActiveTintColor: '#2563eb',
-                tabBarInactiveTintColor: '#94a3b8',
-                tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-                tabBarIcon: ({ color, size }: any) => {
-                    const icons: Record<string, string> = {
-                        Dashboard: 'view-dashboard', Transactions: 'swap-horizontal',
-                        More: 'dots-horizontal', Chat: 'chat',
+                tabBarStyle: {
+                    position: 'absolute',
+                    backgroundColor: colors.surface,
+                    borderTopColor: 'transparent',
+                    height: 72,
+                    paddingBottom: 12,
+                    paddingTop: 8,
+                    marginHorizontal: spacing.md,
+                    marginBottom: spacing.md,
+                    borderRadius: radius.xl,
+                    borderTopWidth: 0,
+                    ...shadows.popover,
+                },
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textMuted,
+                tabBarLabel: ({ color }: any) => {
+                    const labels: Record<string, string> = {
+                        Dashboard: t('tabs.dashboard'),
+                        Transactions: t('tabs.transactions'),
+                        More: t('tabs.more'),
+                        Chat: t('tabs.chat'),
                     };
-                    return <Icon source={icons[route.name] || 'circle'} size={size} color={color} />;
+                    return <Text style={{ fontSize: 11, fontWeight: '600', color }}>{labels[route.name] || route.name}</Text>;
+                },
+                tabBarIcon: ({ color, focused }: any) => {
+                    type IconName = keyof typeof Ionicons.glyphMap;
+                    const map: Record<string, { f: IconName; u: IconName }> = {
+                        Dashboard: { f: 'grid', u: 'grid-outline' },
+                        Transactions: { f: 'swap-horizontal', u: 'swap-horizontal-outline' },
+                        More: { f: 'ellipsis-horizontal', u: 'ellipsis-horizontal-outline' },
+                        Chat: { f: 'chatbubble-ellipses', u: 'chatbubble-ellipses-outline' },
+                    };
+                    const names = map[route.name] || { f: 'circle', u: 'circle-outline' };
+                    if (focused) {
+                        return (
+                            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={appStyles.tabActive}>
+                                <Ionicons name={names.f} size={20} color={colors.textOnPrimary} />
+                            </LinearGradient>
+                        );
+                    }
+                    return <Ionicons name={names.u} size={22} color={color} />;
                 },
                 tabBarBadge: (route as any).name === 'More' && badge > 0 ? badge : undefined,
             })}
@@ -228,8 +295,8 @@ export default function AppNavigator() {
 
     if (isLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-                <ActivityIndicator size="large" color="#2563eb" />
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }

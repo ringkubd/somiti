@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { colors } from '../theme';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -41,12 +42,10 @@ export function usePushNotifications(onTap?: (data: any) => void) {
         });
 
         return () => {
-            if (notificationListener.current) {
-                (Notifications as any).removeNotificationSubscription(notificationListener.current);
-            }
-            if (responseListener.current) {
-                (Notifications as any).removeNotificationSubscription(responseListener.current);
-            }
+            notificationListener.current?.remove?.();
+            responseListener.current?.remove?.();
+            notificationListener.current = null;
+            responseListener.current = null;
         };
     }, [token]);
 }
@@ -59,7 +58,7 @@ async function registerForPushNotifications() {
             name: 'Default',
             importance: Notifications.AndroidImportance.HIGH,
             vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#2563eb',
+            lightColor: colors.primary,
         });
     }
 

@@ -13,8 +13,7 @@ class InvestmentController extends Controller
     {
         $user = Auth::user();
         $investments = Investment::where(function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-                ->orWhereHas('somiti.members', function ($q2) use ($user) {
+            $q->whereHas('somiti.members', function ($q2) use ($user) {
                     $q2->where('user_id', $user->id);
                 })
                 ->orWhereHas('somiti.managers', function ($q2) use ($user) {
@@ -40,7 +39,9 @@ class InvestmentController extends Controller
             abort(403);
         }
 
+        $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
         $investment = Investment::create(array_merge($request->only(['somiti_id', 'financial_year_id', 'type', 'amount', 'start_date', 'maturity_date']), ['user_id' => Auth::id(), 'status' => 'pending']));
+        $investment->requestApproval($somiti->created_by_user_id, 'New investment application.');
 
         return response()->json($investment, 201);
     }
