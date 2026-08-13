@@ -42,6 +42,7 @@ class InvestmentController extends Controller
         $somiti = \App\Models\Somiti::findOrFail($request->input('somiti_id'));
         $investment = Investment::create(array_merge($request->only(['somiti_id', 'financial_year_id', 'type', 'amount', 'start_date', 'maturity_date']), ['user_id' => Auth::id(), 'status' => 'pending']));
         $investment->requestApproval($somiti->created_by_user_id, 'New investment application.');
+        \App\Models\Notification::sendToSomiti($somiti, 'New Investment', Auth::user()->name.' added an investment of $'.number_format($investment->amount, 2).'.');
 
         return response()->json($investment, 201);
     }

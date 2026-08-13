@@ -20,11 +20,13 @@ class Notification extends Model
         'user_id',
         'title',
         'message',
+        'data',
         'is_read',
     ];
 
     protected $casts = [
         'is_read' => 'bool',
+        'data' => 'array',
     ];
 
     protected static function booted(): void
@@ -57,7 +59,7 @@ class Notification extends Model
         return $this->save();
     }
 
-    public static function sendToUser(User $user, string $title, string $message, ?Somiti $somiti = null): self
+    public static function sendToUser(User $user, string $title, string $message, ?Somiti $somiti = null, array $data = []): self
     {
         return static::create([
             'somiti_id' => $somiti?->id,
@@ -66,6 +68,7 @@ class Notification extends Model
             'user_id' => $user->id,
             'title' => $title,
             'message' => $message,
+            'data' => $data ?: null,
             'is_read' => false,
         ]);
     }

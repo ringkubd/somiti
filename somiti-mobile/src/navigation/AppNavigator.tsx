@@ -80,6 +80,7 @@ import ProfitLossScreen from '../screens/reports/ProfitLossScreen';
 import PortfolioScreen from '../screens/reports/PortfolioScreen';
 import MemberProfilesScreen from '../screens/reports/MemberProfilesScreen';
 import MemberProfileScreen from '../screens/reports/MemberProfileScreen';
+import ReportsHubScreen from '../screens/reports/ReportsHubScreen';
 
 // Common layout wrapper
 import ScreenLayout from '../components/ScreenLayout';
@@ -186,6 +187,7 @@ function MoreStack() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MoreHome" component={withLayout(MoreScreen)} />
+            <Stack.Screen name="ReportsHub" component={withLayout(ReportsHubScreen)} />
             <Stack.Screen name="ApprovalsList" component={withLayout(ApprovalsListScreen)} />
             <Stack.Screen name="ReportsSummary" component={withLayout(ReportsSummaryScreen)} />
             <Stack.Screen name="ReportsTrialBalance" component={withLayout(ReportsTrialBalanceScreen)} />

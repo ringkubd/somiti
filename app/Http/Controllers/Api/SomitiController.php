@@ -41,6 +41,27 @@ class SomitiController extends Controller
         return response()->json($somiti, 201);
     }
 
+    /**
+     * Join a somiti by its public unique code (self-service membership).
+     */
+    public function join(Request $request)
+    {
+        $request->validate(['unique_code' => 'required|string|max:20']);
+
+        // Search across ALL somitis (the tenant scope would hide somitis the
+        // joining user is not yet a member of).
+        $somiti = Somiti::withoutGlobalScope(\App\Models\Scopes\UserAccessScope::class)
+            ->where('unique_code', strtoupper(trim($request->input('unique_code'))))
+            ->first();
+        if (! $somiti) {
+            return response()->json(['message' => 'Somiti not found for this code.'], 404);
+        }
+
+        $somiti->addMember(Auth::user(), 'member');
+
+        return response()->json($somiti->only(['id', 'name', 'unique_code', 'currency', 'currency_symbol']));
+    }
+
     public function show(Somiti $somiti)
     {
         if (! Auth::user()->can('view', $somiti)) {

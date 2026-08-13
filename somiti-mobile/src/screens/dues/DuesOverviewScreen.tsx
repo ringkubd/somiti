@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import client from '../../api/client';
 import { useSomiti, getCurrencySymbol } from '../../hooks/useSomiti';
@@ -28,6 +28,15 @@ export default function DuesOverviewScreen({ navigation }: any) {
 
     const cs = getCurrencySymbol();
     const totals = (data as any).totals || {};
+
+    const openProfile = async (member: any) => {
+        try {
+            const { data } = await client.get(`/somitis/${somitiId}/reports/members/${member.user?.id}`);
+            navigation.navigate('MemberProfile', { profile: data });
+        } catch (err: any) {
+            Alert.alert('Restricted', err.response?.status === 403 ? 'Only managers can view member profiles.' : 'Failed to load profile');
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -61,7 +70,7 @@ export default function DuesOverviewScreen({ navigation }: any) {
                                 ? <Text style={styles.overdue}>{t('overdue')}</Text>
                                 : <Text style={styles.ok}>{t('paidStatus')}</Text>
                         }
-                        onPress={() => navigation.navigate('MemberDues', { member: item })}
+                        onPress={() => openProfile(item)}
                     />
                 )}
                 ListEmptyComponent={<EmptyState message={t('noActiveMembers')} />}

@@ -30,7 +30,13 @@ class PenaltyObserver
             $penalty->user,
             'Penalty Applied',
             'A penalty of $'.number_format($penalty->amount, 2).' has been applied to your account.',
-            $penalty->somiti
+            $penalty->somiti,
+            ['type' => 'penalty', 'id' => $penalty->id]
+        );
+        \App\Models\Notification::sendToSomiti(
+            $penalty->somiti,
+            'Penalty Applied',
+            'A penalty of $'.number_format($penalty->amount, 2).' was applied to '.$penalty->user->name.'\'s account.'
         );
 
         event(new \App\Events\TransactionEvent(

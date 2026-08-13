@@ -18,7 +18,13 @@ class LoanObserver
                 $loan->user,
                 'Loan Approved',
                 'Your loan application for $'.number_format($loan->amount, 2).' has been approved.',
-                $loan->somiti
+                $loan->somiti,
+                ['type' => 'loan', 'id' => $loan->id]
+            );
+            \App\Models\Notification::sendToSomiti(
+                $loan->somiti,
+                'Loan Approved',
+                $loan->user->name.'\'s loan application for $'.number_format($loan->amount, 2).' has been approved.'
             );
 
             event(new \App\Events\TransactionEvent(
@@ -43,7 +49,13 @@ class LoanObserver
                 $loan->user,
                 'Loan Disbursed',
                 'Funds for your loan ($'.number_format($loan->amount, 2).') have been disbursed.',
-                $loan->somiti
+                $loan->somiti,
+                ['type' => 'loan', 'id' => $loan->id]
+            );
+            \App\Models\Notification::sendToSomiti(
+                $loan->somiti,
+                'Loan Disbursed',
+                'A loan of $'.number_format($loan->amount, 2).' has been disbursed to '.$loan->user->name.'.'
             );
 
             event(new \App\Events\TransactionEvent(

@@ -24,7 +24,7 @@ export default function JoinSomitiScreen({ navigation }: any) {
                 setSubmitting(false);
                 return;
             }
-            await client.post(`/somitis/${matched.id}/users`, { user_id: useAuthStore.getState().user?.id, role: 'member' });
+            await client.post('/somitis/join', { unique_code: matched.unique_code });
             const { data: me } = await client.get('/auth/me');
             useAuthStore.setState({ user: me });
             Alert.alert(t('joined'), t('nowMemberOf') + ` "${matched.name}"`, [

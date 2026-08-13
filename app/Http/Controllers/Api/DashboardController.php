@@ -86,6 +86,10 @@ class DashboardController extends Controller
                 'from_date' => $currentManager->from_date?->toDateString(),
                 'to_date' => $currentManager->to_date?->toDateString(),
             ] : null,
+            'can_manage' => $userId === $somiti->created_by_user_id
+                || \App\Models\SomitiManager::where('somiti_id', $somiti->id)->where('user_id', $userId)
+                    ->where(fn ($q) => $q->whereNull('to_date')->orWhere('to_date', '>', now()->endOfDay()))
+                    ->exists(),
             'recent_activity' => collect(
                 Deposit::with('user')->where('somiti_id', $somiti->id)->latest()->limit(5)->get()
                     ->map(fn($d) => ['type' => 'deposit', 'description' => $d->user->name . ' deposited', 'amount' => (float) $d->amount, 'status' => $d->status])

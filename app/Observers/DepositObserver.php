@@ -31,7 +31,13 @@ class DepositObserver
             $deposit->user,
             'Deposit Approved',
             'Your deposit of $'.number_format($deposit->amount, 2).' has been approved.',
-            $deposit->somiti
+            $deposit->somiti,
+            ['type' => 'deposit', 'id' => $deposit->id]
+        );
+        \App\Models\Notification::sendToSomiti(
+            $deposit->somiti,
+            'Deposit Approved',
+            $deposit->user->name.'\'s deposit of $'.number_format($deposit->amount, 2).' has been approved.'
         );
 
         event(new \App\Events\TransactionEvent(

@@ -68,6 +68,7 @@ class LoanRepaymentController extends Controller
         try {
             $repayment = LoanRepaymentService::create($loan, Auth::id(), $request->only(['amount', 'payment_date', 'method', 'notes']));
             $repayment->requestApproval($loan->somiti->created_by_user_id, 'New loan repayment.');
+            \App\Models\Notification::sendToSomiti($loan->somiti, 'New Loan Repayment', Auth::user()->name.' submitted a loan repayment of $'.number_format($repayment->amount, 2).'.');
         } catch (\InvalidArgumentException $e) {
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }

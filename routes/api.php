@@ -140,6 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Somitis
         Route::apiResource('somitis', App\Http\Controllers\Api\SomitiController::class);
+        Route::post('somitis/join', [App\Http\Controllers\Api\SomitiController::class, 'join'])->name('somitis.join');
         // Somiti members (manage members by somiti owner/manager)
         Route::post('somitis/{somiti}/users', [App\Http\Controllers\Api\SomitiMembershipController::class, 'store'])->name('somitis.users.store');
         Route::put('somitis/{somiti}/users/{user}', [App\Http\Controllers\Api\SomitiMembershipController::class, 'update'])->name('somitis.users.update');

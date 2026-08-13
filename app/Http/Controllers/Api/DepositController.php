@@ -44,6 +44,7 @@ class DepositController extends Controller
             'financial_year_id' => $financialYear?->id,
         ]));
         $deposit->requestApproval($somiti->created_by_user_id, 'New deposit submission.');
+        \App\Models\Notification::sendToSomiti($somiti, 'New Deposit Request', Auth::user()->name.' submitted a deposit of $'.number_format($deposit->amount, 2).'.');
 
         return response()->json($deposit, 201);
     }

@@ -15,6 +15,7 @@ export default function ChatScreen({ navigation }: any) {
     const [messages, setMessages] = useState<any[]>([]);
     const [text, setText] = useState('');
     const [somitiId, setSomitiId] = useState<number | null>(null);
+    const [somitis, setSomitis] = useState<any[]>([]);
     const [showEmoji, setShowEmoji] = useState(false);
     const [typingUsers, setTypingUsers] = useState<any[]>([]);
     const [members, setMembers] = useState<any[]>([]);
@@ -29,13 +30,23 @@ export default function ChatScreen({ navigation }: any) {
     const loadChat = async () => {
         try {
             const { data: somitis } = await client.get('/somitis');
+            setSomitis(somitis?.data || []);
             const first = somitis?.data?.[0];
             if (!first) return;
             setSomitiId(first.id);
-            const { data: msgs } = await client.get(`/somitis/${first.id}/messages`);
-            setMessages((msgs?.data || []).reverse());
-            const { data: m } = await client.get(`/somitis/${first.id}/members`);
-            setMembers(m || []);
+            await loadSomiti(first.id);
+        } catch {}
+    };
+
+    const loadSomiti = async (id: number) => {
+        setSomitiId(id);
+        try {
+            const [msgs, m] = await Promise.all([
+                client.get(`/somitis/${id}/messages`),
+                client.get(`/somitis/${id}/members`),
+            ]);
+            setMessages((msgs.data?.data || []).reverse());
+            setMembers(m.data || []);
         } catch {}
     };
 
@@ -114,6 +125,21 @@ export default function ChatScreen({ navigation }: any) {
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <Text style={styles.title}>{t('chat')}</Text>
+                    {somitis.length > 1 && (
+                        <View style={styles.switcher}>
+                            {somitis.map((s: any) => (
+                                <TouchableOpacity
+                                    key={s.id}
+                                    style={[styles.switchChip, somitiId === s.id && styles.switchChipActive]}
+                                    onPress={() => loadSomiti(s.id)}
+                                >
+                                    <Text style={[styles.switchText, somitiId === s.id && styles.switchTextActive]} numberOfLines={1}>
+                                        {s.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                     {typingUsers.length > 0 && <Text style={styles.typing}>{typingUsers.map((t: any) => t.name).join(', ')} {t('typing')}</Text>}
                 </View>
             </View>
@@ -193,6 +219,11 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
     headerLeft: { flex: 1 },
     title: { ...typography.h2, color: colors.text },
+    switcher: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+    switchChip: { backgroundColor: colors.bg, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, maxWidth: 160 },
+    switchChipActive: { backgroundColor: colors.primary },
+    switchText: { fontSize: 12, color: colors.textSecondary },
+    switchTextActive: { color: colors.textOnPrimary, fontWeight: '600' },
     typing: { fontSize: 11, color: colors.primary, fontStyle: 'italic', marginTop: 2 },
     mentionsList: { backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border, maxHeight: 200 },
     mentionItem: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },

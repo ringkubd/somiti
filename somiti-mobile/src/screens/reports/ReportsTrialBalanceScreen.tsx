@@ -4,21 +4,24 @@ import client from '../../api/client';
 import { ScreenHeader, ErrorState, SkeletonList, AppCard } from '../../components/ui';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { useSomiti } from '../../hooks/useSomiti';
 import { colors, spacing, typography } from '../../theme';
 
 export default function ReportsTrialBalanceScreen({ navigation }: any) {
     const { t } = useLanguage();
+    const { somitiId } = useSomiti();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     const load = async () => {
         setLoading(true); setError(false);
-        try { const { data: d } = await client.get('/reports/trial-balance'); setData(d); }
+        if (!somitiId) { setError(true); setLoading(false); return; }
+        try { const { data: d } = await client.get('/reports/trial-balance', { params: { somiti_id: somitiId } }); setData(d); }
         catch { setError(true); }
         finally { setLoading(false); }
     };
-    React.useEffect(() => { load(); }, []);
+    React.useEffect(() => { load(); }, [somitiId]);
 
     const cs = getCurrencySymbol();
 

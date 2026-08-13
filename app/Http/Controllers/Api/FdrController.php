@@ -46,6 +46,7 @@ class FdrController extends Controller
             ['user_id' => $request->input('user_id') ?? Auth::id()]
         ));
         $fdr->requestApproval($somiti->created_by_user_id, 'New FDR application.');
+        \App\Models\Notification::sendToSomiti($somiti, 'New FDR', Auth::user()->name.' added an FDR of $'.number_format($fdr->maturity_amount ?? 0, 2).' at '.$fdr->bank_name.'.');
 
         return response()->json($fdr, 201);
     }

@@ -5,14 +5,15 @@ import client from '../../api/client';
 import { ListItem, StatusBadge, EmptyState } from '../../components/Shared';
 import { ListHeader } from '../../components/ui';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { getCurrencySymbol } from '../../hooks/useSomiti';
+import { getCurrencySymbol, useSomiti } from '../../hooks/useSomiti';
 import { colors } from '../../theme';
 
 export default function DividendsListScreen({ navigation }: any) {
     const { t } = useLanguage();
+    const { somitiId } = useSomiti();
     const [items, setItems] = useState<any[]>([]);
     const [refreshing, setRefreshing] = useState(false);
-    const fetch = async () => { try { const { data } = await client.get('/dividends'); setItems(data.data || []); } catch { } };
+    const fetch = async () => { try { const { data } = await client.get(`/somitis/${somitiId}/dividends`); setItems(data.data || []); } catch { } };
     useFocusEffect(useCallback(() => { fetch(); }, []));
     return (
         <View style={styles.container}>

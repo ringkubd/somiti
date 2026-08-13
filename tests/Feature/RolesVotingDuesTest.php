@@ -141,7 +141,7 @@ test('voting: manager alone finalizes immediately when manager_can_approve_alone
 
 test('monthly dues: member schedule marks paid and due months', function () {
     [$somiti, $owner] = somitiWithOwner();
-    $somiti->update(['monthly_deposit_amount' => 500, 'due_day' => 10]);
+    $somiti->update(['monthly_deposit_amount' => 500, 'due_day' => min(now()->day + 5, 28)]);
 
     $member = User::factory()->create();
     $somiti->addMember($member, 'member');

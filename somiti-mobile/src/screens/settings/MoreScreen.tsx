@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import client from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { colors, radius, shadows, spacing, typography } from '../../theme';
@@ -32,11 +33,7 @@ const sections: { titleKey: string; items: MenuItem[] }[] = [
     {
         titleKey: 'reports',
         items: [
-            { labelKey: 'summaryReport', descKey: 'overviewOfFinances', label: 'Summary Report', desc: 'Overview of finances', icon: 'stats-chart-outline', color: '#7C3AED', screen: 'ReportsSummary' },
-            { labelKey: 'trialBalance', descKey: 'balancedLedgerView', label: 'Trial Balance', desc: 'Balanced ledger view', icon: 'scale-outline', color: '#0D9488', screen: 'ReportsTrialBalance' },
-            { labelKey: 'balanceSheet', descKey: 'assetsEqLiabEquity', label: 'Balance Sheet', desc: 'Assets = liabilities + equity', icon: 'scale-outline', color: '#0D9488', screen: 'BalanceSheet' },
-            { labelKey: 'fundPortfolio', descKey: 'whereMoneyIs', label: 'Fund Portfolio', desc: 'Where the money is', icon: 'pie-chart-outline', color: '#7C3AED', screen: 'Portfolio' },
-            { labelKey: 'memberProfiles', descKey: 'financialSnapshot', label: 'Member Profiles', desc: 'Financial snapshot per member', icon: 'people-outline', color: '#4F46E5', screen: 'MemberProfiles' },
+            { labelKey: 'reports', descKey: 'financialReports', label: 'Reports', desc: 'All financial reports', icon: 'document-text-outline', color: '#7C3AED', screen: 'ReportsHub' },
         ],
     },
     {
@@ -53,6 +50,21 @@ export default function MoreScreen({ navigation }: any) {
     const { t } = useLanguage();
     const user = useAuthStore((s) => s.user);
     const logout = useAuthStore((s) => s.logout);
+    const [canManage, setCanManage] = useState(false);
+
+    useEffect(() => {
+        client.get('/dashboard')
+            .then(({ data }) => setCanManage(!!data.can_manage))
+            .catch(() => {});
+    }, []);
+
+    const managerOnly = ['Managers', 'DuesOverview', 'MemberProfiles'];
+    const visibleSections = sections
+        .map((section) => ({
+            ...section,
+            items: canManage ? section.items : section.items.filter((i) => !managerOnly.includes(i.screen)),
+        }))
+        .filter((section) => section.items.length > 0);
 
     const nav = (screen: string) => {
         // Screens registered in the Transactions stack
@@ -79,7 +91,7 @@ export default function MoreScreen({ navigation }: any) {
                 </TouchableOpacity>
             </View>
 
-            {sections.map((section) => (
+            {visibleSections.map((section) => (
                 <View key={section.titleKey} style={styles.section}>
                     <Text style={styles.sectionTitle}>{t(section.titleKey)}</Text>
                     <View style={styles.group}>

@@ -19,7 +19,13 @@ class WithdrawalObserver
             $withdrawal->user,
             'Withdrawal Approved',
             'Your withdrawal of $'.number_format($withdrawal->amount, 2).' has been approved.',
-            $withdrawal->somiti
+            $withdrawal->somiti,
+            ['type' => 'withdrawal', 'id' => $withdrawal->id]
+        );
+        \App\Models\Notification::sendToSomiti(
+            $withdrawal->somiti,
+            'Withdrawal Approved',
+            $withdrawal->user->name.'\'s withdrawal of $'.number_format($withdrawal->amount, 2).' has been approved.'
         );
 
         event(new \App\Events\TransactionEvent(

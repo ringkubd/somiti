@@ -13,13 +13,38 @@ export default function NotificationsListScreen({ navigation }: any) {
     const [refreshing, setRefreshing] = useState(false);
     const fetch = async () => { try { const { data } = await client.get('/notifications'); setItems(data.data || []); } catch { } };
     useFocusEffect(useCallback(() => { fetch(); }, []));
+
+    const openNotification = (item: any) => {
+        const d = item.data || {};
+        client.post(`/notifications/${item.id}/mark-read`).catch(() => {});
+        fetch();
+        switch (d.type) {
+            case 'deposit':
+                return navigation.navigate('Transactions', { screen: 'DepositDetail', params: { id: d.id } });
+            case 'loan':
+                return navigation.navigate('Transactions', { screen: 'LoanDetail', params: { id: d.id } });
+            case 'withdrawal':
+                return navigation.navigate('Transactions', { screen: 'WithdrawalsList' });
+            case 'penalty':
+                return navigation.navigate('Transactions', { screen: 'PenaltiesList' });
+            case 'repayment':
+                return navigation.navigate('Transactions', { screen: 'RepaymentsList' });
+            case 'dues':
+                return navigation.navigate('Transactions', { screen: 'MyDues' });
+            default:
+                if (item.somiti_id) {
+                    return navigation.navigate('Dashboard', { screen: 'SomitiDetail', params: { id: item.somiti_id } });
+                }
+        }
+    };
     return (
         <View style={styles.container}>
             <ListHeader title={t('notifications')} subtitle={t('updatesAlerts')} />
             <FlatList data={items} keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                     <ListItem title={item.title} subtitle={item.message}
-                        right={item.is_read ? undefined : <View style={styles.dot} />} />
+                        right={item.is_read ? undefined : <View style={styles.dot} />}
+                        onPress={() => openNotification(item)} />
                 )}
                 ListEmptyComponent={<EmptyState message={t('noNotifications')} />}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetch(); setRefreshing(false); }} />}

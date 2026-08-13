@@ -51,6 +51,7 @@ class ShareTransferController extends Controller
 
         $somiti = \App\Models\Somiti::find($validated['somiti_id']);
         $transfer->requestApproval($somiti->created_by_user_id, 'New share transfer.');
+        \App\Models\Notification::sendToSomiti($somiti, 'New Share Transfer', Auth::user()->name.' requested a share transfer of '.$transfer->quantity.' shares.');
 
         return response()->json($transfer, 201);
     }

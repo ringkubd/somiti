@@ -40,7 +40,13 @@ class LoanRepaymentObserver
             $repayment->user,
             'Loan Repayment Approved',
             'Your loan repayment of $'.number_format($repayment->amount, 2).' has been approved.',
-            $repayment->somiti
+            $repayment->somiti,
+            ['type' => 'repayment', 'id' => $repayment->loan_id]
+        );
+        \App\Models\Notification::sendToSomiti(
+            $repayment->somiti,
+            'Loan Repayment',
+            $repayment->user->name.' repaid $'.number_format($repayment->amount, 2).' against their loan.'
         );
 
         event(new \App\Events\TransactionEvent(

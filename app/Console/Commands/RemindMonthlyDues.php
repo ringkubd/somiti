@@ -64,7 +64,7 @@ class RemindMonthlyDues extends Command
                     ? "Your {$monthLabel} deposit of {$somiti->currency_symbol}{$amount} is overdue. Please pay as soon as possible."
                     : "Your {$monthLabel} deposit of {$somiti->currency_symbol}{$amount} is due by {$dueDate->format('d M Y')}. Please pay.";
 
-                Notification::sendToUser($member->user, $title, $message, $somiti);
+                Notification::sendToUser($member->user, $title, $message, $somiti, ['type' => 'dues', 'month' => $monthKey]);
 
                 DueReminder::create([
                     'somiti_id' => $somiti->id,
