@@ -104,13 +104,6 @@ export default function DashboardScreen({ navigation }: any) {
                         </View>
                     </View>
 
-                    <TouchableOpacity style={styles.managerChip} onPress={() => navigation.navigate('Transactions', { screen: 'Managers' })}>
-                        <Ionicons name="briefcase-outline" size={14} color={colors.primary} />
-                        <Text style={styles.managerChipText}>
-                            {data?.manager ? `${t('manager')}: ${data.manager.name}` : `${t('setManager')} →`}
-                        </Text>
-                    </TouchableOpacity>
-
                     {/* Primary actions */}
                     <View style={styles.primaryRow}>
                         {primaryActions.map((a) => (
@@ -234,12 +227,6 @@ const styles = StyleSheet.create({
     fundPills: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
     fundPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.bg, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6 },
     fundPillText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
-    managerChip: {
-        flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6,
-        borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface,
-        borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8, marginHorizontal: spacing.lg, marginTop: spacing.sm,
-    },
-    managerChipText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
     primaryRow: { flexDirection: 'row', margin: spacing.lg, marginBottom: 0, gap: spacing.sm },
     primaryAction: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, paddingVertical: spacing.md, alignItems: 'center', ...shadows.card },
     primaryIcon: { width: 42, height: 42, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },

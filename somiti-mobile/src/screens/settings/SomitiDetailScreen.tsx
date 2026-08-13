@@ -57,7 +57,6 @@ export default function SomitiDetailScreen({ route, navigation }: any) {
                 <>
                     <Text style={styles.section}>{t('manage')}</Text>
                     <View style={styles.actions}>
-                        <AppButton title={t('setManager')} variant="primary" onPress={() => navigation.navigate('Managers', { somitiId: somiti.id })} />
                         <AppButton title={t('monthlyDues')} variant="secondary" onPress={() => navigation.navigate('DuesOverview', { somitiId: somiti.id })} />
                         <AppButton title={t('members')} variant="secondary" onPress={() => navigation.navigate('MembersList')} />
                         <AppButton title={t('balanceSheet')} variant="secondary" onPress={() => navigation.navigate('BalanceSheet')} />
