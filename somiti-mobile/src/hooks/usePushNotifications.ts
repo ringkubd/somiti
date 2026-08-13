@@ -73,8 +73,9 @@ async function registerForPushNotifications() {
     if (finalStatus !== 'granted') return;
 
     try {
-        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: undefined });
-        const token = tokenData.data;
+        // Native FCM token (Android) / APNs token (iOS) — pure Firebase push.
+        const tokenData = await Notifications.getDevicePushTokenAsync();
+        const token = typeof tokenData.data === 'string' ? tokenData.data : JSON.stringify(tokenData.data);
 
         if (token && token !== cachedToken) {
             cachedToken = token;

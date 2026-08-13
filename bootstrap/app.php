@@ -27,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\CheckUserStatus::class,
+            \App\Http\Middleware\UpdateLastActive::class,
+        ]);
+
+        $middleware->api(append: [
+            \App\Http\Middleware\UpdateLastActive::class,
         ]);
 
         $middleware->alias([
